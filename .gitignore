@@ -1,0 +1,46 @@
+# Dependency directories
+node_modules/
+*/node_modules/
+*/*/node_modules/
+*/*/*/node_modules/
+
+# Environment files with sensitive credentials
+.env
+*.env
+!.env.example
+
+# Large binary archives & executables (GitHub restricts files > 100 MB, e.g. server.exe ~138 MB, EMS.zip ~212 MB)
+*.zip
+*.rar
+*.tar.gz
+*.7z
+*.exe
+*.msi
+*.mp4
+*.mkv
+*.mov
+
+# Production build outputs (can be rebuilt via npm run build)
+dist/
+build/
+coverage/
+*/dist/
+*/build/
+*/coverage/
+
+# Log files and database runtime dumps
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.sqlite3
+*.db
+!ecommerce.db
+
+# OS & Editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+__pycache__/
+*.pyc
