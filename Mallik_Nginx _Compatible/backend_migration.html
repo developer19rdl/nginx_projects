@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Backend Migration Guide (Node.js Express) — Mallik ERP</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface2: #f1f5f9;
+      --border: #cbd5e1;
+      --border-light: #e2e8f0;
+      
+      --text: #0f172a;
+      --text-secondary: #334155;
+      --muted: #64748b;
+      
+      --green: #059669;
+      --green-light: #ecfdf5;
+      --green-border: #a7f3d0;
+      
+      --red: #dc2626;
+      --red-light: #fef2f2;
+      --red-border: #fecaca;
+      
+      --accent: #2563eb;
+
+      --code-bg: #1e293b;
+      --code-text: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .hero {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 48px 60px 40px;
+    }
+    
+    .badge-top {
+      display: inline-flex;
+      align-items: center;
+      background: var(--green-light);
+      border: 1px solid var(--green-border);
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 60px 80px;
+    }
+
+    .diff-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .diff-table th {
+      background: var(--surface2);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 12px 18px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .diff-table td {
+      padding: 14px 18px;
+      font-size: 13.5px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .file-name { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--accent); }
+    .code-val { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; padding: 3px 8px; border-radius: 6px; }
+    .code-val.old { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
+    .code-val.new { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+    .status-badge { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 14px; background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      padding: 20px;
+      border-radius: 10px;
+      overflow-x: auto;
+      margin-top: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .c-comment { color: #64748b; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="badge-top">Backend Specification</div>
+    <h1>🟢 Node.js Express — XAMPP to Nginx Migration Guide</h1>
+    <p style="color:var(--muted)">All backend server changes, network binding updates, and Nginx reverse proxy configuration.</p>
+  </div>
+
+  <div class="container">
+    <h2 style="font-size:20px; font-weight:700; margin-bottom:16px;">1. File Changes Required</h2>
+    <table class="diff-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>File Path</th>
+          <th>Old XAMPP Value</th>
+          <th>New Nginx Value</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><span class="file-name">app/server.js</span></td>
+          <td>Missing proxy trust setting</td>
+          <td><span class="code-val new">app.set("trust proxy", 1);</span></td>
+          <td><span class="status-badge">✅ Verified</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><span class="file-name">app/.env</span></td>
+          <td><span class="code-val old">APP_HOST = 0.0.0.0</span></td>
+          <td><span class="code-val new">APP_HOST = 127.0.0.1</span></td>
+          <td><span class="status-badge">✅ Verified</span></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><span class="file-name">app/.env</span></td>
+          <td><span class="code-val old">APP_URL = http://localhost</span></td>
+          <td><span class="code-val new">APP_URL = http://192.168.1.9</span></td>
+          <td><span class="status-badge">✅ Verified</span></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><span class="file-name">app/.env</span></td>
+          <td>Points to XAMPP MySQL</td>
+          <td><span class="code-val new">DB_HOST=192.168.1.18, DB_PORT=3306</span></td>
+          <td><span class="status-badge">✅ Verified</span></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><span class="file-name">app/sockets/index.js</span></td>
+          <td><span class="code-val old">origin: "*"</span></td>
+          <td><span class="code-val new">origin: "http://192.168.1.9"</span></td>
+          <td><span class="status-badge">✅ Verified</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 style="font-size:20px; font-weight:700; margin-top:40px; margin-bottom:16px;">2. Nginx Location Blocks for Backend & WebSockets</h2>
+    <p style="color:var(--text-secondary);">Nginx acts as the reverse proxy for API routes and passes HTTP 1.1 Upgrade headers for WebSocket connections:</p>
+    
+    <pre><code><span class="c-comment"># Nginx config section for Backend API</span>
+location /api/ {
+    proxy_pass http://127.0.0.1:8000/api/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 300s;
+}
+
+<span class="c-comment"># Nginx config section for Socket.io WebSockets</span>
+location /socket.io/ {
+    proxy_pass http://127.0.0.1:8000/socket.io/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_read_timeout 300s;
+}</code></pre>
+
+  </div>
+
+</body>
+</html>

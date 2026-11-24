@@ -1,0 +1,1 @@
+{"fileName":"production-order-template.xlsx","validRows":[],"errors":[{"row_no":2,"column_name":"Item","error_message":"Item \"CR\" does not exist in master data","raw_data":{"machine_code":"SLITTING-1","customer_name":"SG MART (JW)","item_code":"CR","size":"1.2X1250XC","quantity":5,"lot_no":"L-318/319/320/3210","division":"SSD"}}]}

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XAMPP to Nginx Migration Guide — Mallik ERP</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface2: #f1f5f9;
+      --surface3: #e2e8f0;
+      --border: #cbd5e1;
+      --border-light: #e2e8f0;
+      
+      --text: #0f172a;
+      --text-secondary: #334155;
+      --muted: #64748b;
+      
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --accent-border: #bfdbfe;
+
+      --purple: #7c3aed;
+      --purple-light: #f5f3ff;
+      --purple-border: #ddd6fe;
+      
+      --green: #059669;
+      --green-light: #ecfdf5;
+      --green-border: #a7f3d0;
+      
+      --red: #dc2626;
+      --red-light: #fef2f2;
+      --red-border: #fecaca;
+      
+      --yellow: #d97706;
+      --yellow-light: #fffbeb;
+      --yellow-border: #fde68a;
+
+      --code-bg: #1e293b;
+      --code-text: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── HEADER / HERO ─── */
+    .hero {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 48px 60px 40px;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    }
+    
+    .badge-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-light);
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 720px;
+      margin-bottom: 24px;
+    }
+
+    .meta-bar {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border-light);
+      padding-top: 20px;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+    }
+
+    .meta-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* ─── CONTAINER ─── */
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 60px 80px;
+    }
+
+    section {
+      padding-top: 48px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title .icon-wrap {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    /* ─── CARD CONTAINERS FOR FRONT & BACKEND ─── */
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -2px rgba(0,0,0,0.03);
+    }
+
+    .section-card.frontend-card {
+      border-top: 5px solid var(--purple);
+    }
+
+    .section-card.backend-card {
+      border-top: 5px solid var(--green);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .card-header h3 {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-tag {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    .card-tag.frontend { background: var(--purple-light); color: var(--purple); border: 1px solid var(--purple-border); }
+    .card-tag.backend { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+
+    /* ─── ARCHITECTURE CARDS ─── */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 12px;
+    }
+
+    .arch-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+    }
+
+    .arch-card.old { border-top: 4px solid var(--red); }
+    .arch-card.new { border-top: 4px solid var(--green); }
+
+    .arch-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .arch-tag.old { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
+    .arch-tag.new { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+
+    .flow-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .flow-node {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+    }
+
+    .flow-node.highlight-red { background: var(--red-light); border-color: var(--red-border); }
+    .flow-node.highlight-green { background: var(--green-light); border-color: var(--green-border); }
+    .flow-node.highlight-blue { background: var(--accent-light); border-color: var(--accent-border); }
+
+    .flow-icon { font-size: 20px; width: 32px; text-align: center; }
+    .flow-info strong { display: block; font-size: 14px; color: var(--text); }
+    .flow-info span { font-size: 12.5px; color: var(--muted); }
+    .flow-arrow { text-align: center; color: var(--muted); font-size: 16px; line-height: 1; }
+
+    /* ─── TABLES ─── */
+    .diff-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .diff-table th {
+      background: var(--surface2);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 12px 18px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .diff-table td {
+      padding: 14px 18px;
+      font-size: 13.5px;
+      border-bottom: 1px solid var(--border-light);
+      vertical-align: top;
+    }
+
+    .diff-table tr:last-child td { border-bottom: none; }
+
+    .file-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .code-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    .code-val.old { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
+    .code-val.new { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 14px;
+    }
+
+    .status-badge.done { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+
+    /* ─── CODE BLOCK ─── */
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      padding: 20px;
+      border-radius: 10px;
+      overflow-x: auto;
+      line-height: 1.7;
+      margin-top: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .c-comment { color: #64748b; }
+    .c-kw { color: #c792ea; }
+    .c-str { color: #a5d6a7; }
+
+    footer {
+      margin-top: 60px;
+      padding: 32px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="badge-top">Architecture Migration Plan</div>
+    <h1>Mallik ERP — XAMPP to Nginx Migration</h1>
+    <p>Separated Technical Migration Specifications for Frontend (React) and Backend (Node.js Express + MariaDB + Redis).</p>
+    <div class="meta-bar">
+      <div class="meta-item"><span class="meta-dot" style="background:var(--accent)"></span> Server LAN IP: <strong>192.168.1.9</strong></div>
+      <div class="meta-item"><span class="meta-dot" style="background:var(--green)"></span> Migration Status: <strong>Verified & Operational</strong></div>
+      <div class="meta-item"><span class="meta-dot" style="background:var(--purple)"></span> Entry Port: <strong>Nginx Port 80 (Single Gateway)</strong></div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="container">
+
+    <!-- ARCHITECTURE COMPARISON -->
+    <section>
+      <div class="section-title">
+        <div class="icon-wrap" style="background:var(--accent-light); color:var(--accent);">🏗️</div>
+        1. Overview: Old XAMPP Architecture vs New Nginx Stack
+      </div>
+
+      <div class="arch-grid">
+        <!-- OLD XAMPP -->
+        <div class="arch-card old">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-size:18px; font-weight:700;">Old XAMPP Approach</h3>
+            <span class="arch-tag old">Tight Coupling</span>
+          </div>
+          <div class="flow-list">
+            <div class="flow-node">
+              <div class="flow-icon">🌐</div>
+              <div class="flow-info"><strong>Client Browser</strong><span>Hits direct ports on LAN</span></div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-node highlight-red">
+              <div class="flow-icon">📦</div>
+              <div class="flow-info"><strong>XAMPP Apache (Port 80)</strong><span>Serves PHP & React build</span></div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-node highlight-red">
+              <div class="flow-icon">🟢</div>
+              <div class="flow-info"><strong>Node.js API (Port 8000/8001)</strong><span>Exposed directly to network (`0.0.0.0`)</span></div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-node highlight-red">
+              <div class="flow-icon">🗄️</div>
+              <div class="flow-info"><strong>XAMPP MySQL (Port 3306)</strong><span>Database tied to XAMPP lifecycle</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEW NGINX -->
+        <div class="arch-card new">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-size:18px; font-weight:700;">New Nginx Proxy Stack</h3>
+            <span class="arch-tag new">Separated Services</span>
+          </div>
+          <div class="flow-list">
+            <div class="flow-node">
+              <div class="flow-icon">🌐</div>
+              <div class="flow-info"><strong>Client Browser</strong><span>Connects ONLY to Port 80</span></div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-node highlight-blue">
+              <div class="flow-icon">⚡</div>
+              <div class="flow-info"><strong>Nginx Gateway (Port 80)</strong><span>Routes `/` to Frontend & `/api/` to Backend</span></div>
+            </div>
+            <div class="flow-arrow">↓ Internal Proxies ↓</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <div class="flow-node highlight-green" style="padding:10px;">
+                <div class="flow-info"><strong>React (`/`)</strong><span>Static `/build`</span></div>
+              </div>
+              <div class="flow-node highlight-green" style="padding:10px;">
+                <div class="flow-info"><strong>Node (`/api/`)</strong><span>127.0.0.1:8000</span></div>
+              </div>
+            </div>
+            <div class="flow-arrow">↓</div>
+            <div class="flow-node highlight-green">
+              <div class="flow-icon">🗄️</div>
+              <div class="flow-info"><strong>Native MariaDB (Port 3306) + Memurai Redis (Port 6379)</strong><span>Independent Windows Services</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION A: FRONTEND MIGRATION -->
+    <section>
+      <div class="section-card frontend-card">
+        <div class="card-header">
+          <h3>⚛️ FRONTEND MIGRATION GUIDE (React JS)</h3>
+          <span class="card-tag frontend">Frontend Team Specification</span>
+        </div>
+
+        <p style="color:var(--text-secondary); margin-bottom:16px;">
+          Under Nginx, the frontend no longer connects directly to <code>http://192.168.1.15:8001/api/</code>. 
+          All requests use relative URLs (<code>/api/</code>), allowing Nginx to handle reverse proxying on Port 80 transparently.
+        </p>
+
+        <h4 style="font-size:15px; font-weight:700; margin-bottom:12px; color:var(--text);">Frontend File Changes Table</h4>
+        <table class="diff-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>File Path</th>
+              <th>Old XAMPP Value</th>
+              <th>New Nginx Value</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><span class="file-name">MallikNewVersion/package.json</span></td>
+              <td><span class="code-val old">"homepage": "http://192.168.0.4/MallikEngineering/"</span></td>
+              <td><span class="code-val new">"homepage": "/"</span></td>
+              <td><span class="status-badge done">✅ Done</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><span class="file-name">MallikNewVersion/.env</span></td>
+              <td><span class="code-val old">REACT_APP_API_URL=http://192.168.1.15:8001/api/</span></td>
+              <td><span class="code-val new">REACT_APP_API_URL=/api/</span></td>
+              <td><span class="status-badge done">✅ Done</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><span class="file-name">MallikNewVersion/.env</span></td>
+              <td><span class="code-val old">REACT_APP_IMAGE_URL=http://192.168.1.15:8001/</span></td>
+              <td><span class="code-val new">REACT_APP_IMAGE_URL=/</span></td>
+              <td><span class="status-badge done">✅ Done</span></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><span class="file-name">MallikNewVersion/</span></td>
+              <td>Dynamic execution in Apache folder</td>
+              <td><span class="code-val new">npm run build</span> (Production Bundle)</td>
+              <td><span class="status-badge done">✅ Done</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4 style="font-size:15px; font-weight:700; margin-top:24px; margin-bottom:8px; color:var(--text);">Nginx Static File Location Block (for Frontend)</h4>
+        <pre><code><span class="c-comment"># Nginx config section for React Frontend</span>
+location / {
+    root "C:/Users/Administrator/source/repos/Honda/Other Projects/Nginx demo/Mllik/MallikNewVersion/build";
+    try_files $uri $uri/ /index.html;  <span class="c-comment"># SPA client-side routing fallback</span>
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- SECTION B: BACKEND MIGRATION -->
+    <section>
+      <div class="section-card backend-card">
+        <div class="card-header">
+          <h3>🟢 BACKEND MIGRATION GUIDE (Node.js Express + MariaDB + Redis)</h3>
+          <span class="card-tag backend">Backend Team Specification</span>
+        </div>
+
+        <p style="color:var(--text-secondary); margin-bottom:16px;">
+          The Node.js server now runs bound to <code>127.0.0.1</code> (localhost) instead of public <code>0.0.0.0</code>. 
+          Express is configured to trust Nginx proxy headers, and database connectivity is pointed to standalone MariaDB and Memurai Redis services.
+        </p>
+
+        <h4 style="font-size:15px; font-weight:700; margin-bottom:12px; color:var(--text);">Backend File Changes Table</h4>
+        <table class="diff-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>File Path</th>
+              <th>Old XAMPP Value</th>
+              <th>New Nginx Value</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><span class="file-name">app/server.js</span></td>
+              <td>Missing proxy trust setting</td>
+              <td><span class="code-val new">app.set("trust proxy", 1);</span></td>
+              <td><span class="status-badge done">✅ Done</span></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><span class="file-name">app/.env</span></td>
+              <td><span class="code-val old">APP_HOST = 0.0.0.0</span></td>
+              <td><span class="code-val new">APP_HOST = 127.0.0.1</span></td>
+              <td><span class="status-badge done">✅ Done</span></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><span class="file-name">app/.env</span></td>
+              <td><span class="code-val old">APP_URL = http://localhost</span></td>
+              <td><span class="code-val new">APP_URL = http://192.168.1.9</span></td>
+              <td><span class="status-badge done">✅ Done</span></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><span class="file-name">app/.env</span></td>
+              <td>Points to XAMPP DB</td>
+              <td><span class="code-val new">DB_HOST=192.168.1.18, DB_PORT=3306</span></td>
+              <td><span class="status-badge done">✅ Done</span></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><span class="file-name">app/app/sockets/index.js</span></td>
+              <td><span class="code-val old">origin: "*"</span></td>
+              <td><span class="code-val new">origin: "http://192.168.1.9"</span></td>
+              <td><span class="status-badge done">✅ Done</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4 style="font-size:15px; font-weight:700; margin-top:24px; margin-bottom:8px; color:var(--text);">Nginx Reverse Proxy Location Block (for Backend API & WebSockets)</h4>
+        <pre><code><span class="c-comment"># Nginx config section for API & Socket.io Reverse Proxy</span>
+location /api/ {
+    proxy_pass http://127.0.0.1:8000/api/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 300s;
+}
+
+location /socket.io/ {
+    proxy_pass http://127.0.0.1:8000/socket.io/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade"; <span class="c-comment"># WebSocket Upgrade</span>
+    proxy_read_timeout 300s;
+}</code></pre>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    Mallik ERP Infrastructure Migration Guide &bull; Separated Frontend & Backend Specifications &bull; August 2026
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+.oeeCardTableGridContainer {
+    overflow-x: auto;
+    max-height: 100%;
+    /* Limit the maximum height to the viewport height */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.scrollable::-webkit-scrollbar {
+    width: 0;
+    /* Hide the scrollbar for Chrome, Safari, and newer Edge */
+    height: 0;
+    /* Hide the scrollbar for horizontal scrolling */
+}

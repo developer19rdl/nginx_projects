@@ -1,0 +1,58 @@
+.scrap_bottomContainer {
+    /* border: 1px solid rgb(159, 159, 159); */
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+
+.scrap_headerContainer {
+    background-color: #f7f7fc;
+    padding: 20px;
+    border-radius: 5px 5px 0 0;
+}
+
+.scrap_datePicker {
+    /* width: 270px; */
+    height: 55px;
+    border-radius: 5px;
+    color: gray;
+    border: 1px solid #c2c2c2;
+    font-size: 18px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.scrap_datePicker:hover {
+    border: 1px solid #000000;
+}
+
+.scrap_from_date_Container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.scrap_to_date_Container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.scrap_from_date_header {
+    width: 130px;
+}
+
+.scrap_bottm_date_containet {
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+.scrap_button_container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}

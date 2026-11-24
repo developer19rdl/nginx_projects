@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Js Based App: Nginx Architecture & Migration Guide</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Mermaid.js for Diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                darkMode: false,
+                background: '#ffffff',
+                mainBkg: '#ffffff',
+                nodeBkg: '#f8fafc',
+                nodeBorder: '#4f46e5',
+                clusterBkg: '#ffffff',
+                clusterBorder: '#cbd5e1',
+                defaultLinkColor: '#4f46e5',
+                titleColor: '#0f172a',
+                edgeLabelBackground: '#ffffff',
+                nodeTextColor: '#0f172a',
+                lineColor: '#4f46e5',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '18px'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-code: #0f172a;
+            --accent-primary: #4f46e5;
+            --accent-secondary: #0284c7;
+            --accent-success: #059669;
+            --accent-warning: #d97706;
+            --accent-danger: #dc2626;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: #cbd5e1;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.65;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Floating Print Bar */
+        .print-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-print {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--accent-primary);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.65rem 1.25rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-print:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        /* Hero Header */
+        header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, #e0e7ff 0%, #e0f2fe 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent-primary);
+            background: #ffffff;
+            border: 1px solid #c7d2fe;
+            border-radius: 9999px;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.3rem;
+            font-weight: 800;
+            color: #1e1b4b;
+            margin-bottom: 0.75rem;
+            line-height: 1.25;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 850px;
+            margin: 0 auto;
+            font-weight: 450;
+        }
+
+        /* Section Cards */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .icon {
+            font-size: 1.6rem;
+        }
+
+        /* Large Light-Mode Diagram Styling */
+        .diagram-container {
+            background-color: #ffffff !important;
+            border: 2px solid #cbd5e1 !important;
+            border-radius: 0.85rem;
+            padding: 2.5rem 1.5rem !important;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: auto;
+            min-height: 320px;
+            margin-top: 1.25rem;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+        }
+
+        .diagram-container pre.mermaid,
+        .diagram-container .mermaid {
+            background-color: #ffffff !important;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-container svg {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 250px !important;
+            background-color: #ffffff !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        /* Force Light Mode Nodes & Text */
+        .diagram-container .node rect,
+        .diagram-container .node circle,
+        .diagram-container .node polygon,
+        .diagram-container g.node rect,
+        .diagram-container g.node polygon {
+            fill: #f8fafc !important;
+            stroke: #4f46e5 !important;
+            stroke-width: 2.5px !important;
+            filter: drop-shadow(0px 4px 6px rgba(79, 70, 229, 0.12));
+        }
+
+        .diagram-container .node .label,
+        .diagram-container .node label,
+        .diagram-container .node text,
+        .diagram-container .node tspan,
+        .diagram-container g.node text,
+        .diagram-container g.node tspan {
+            fill: #0f172a !important;
+            color: #0f172a !important;
+            font-size: 17px !important;
+            font-weight: 700 !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        .diagram-container .edgePath .path {
+            stroke: #4f46e5 !important;
+            stroke-width: 3px !important;
+        }
+
+        .diagram-container .marker,
+        .diagram-container marker path {
+            fill: #4f46e5 !important;
+            stroke: #4f46e5 !important;
+        }
+
+        .diagram-container .edgeLabel,
+        .diagram-container .edgeLabel rect,
+        .diagram-container .edgeLabel span {
+            background-color: #ffffff !important;
+            fill: #1e1b4b !important;
+            color: #1e1b4b !important;
+            font-size: 15px !important;
+            font-weight: 600 !important;
+            border-radius: 6px;
+            padding: 4px 8px;
+        }
+
+        /* Comparison Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Code Blocks */
+        pre {
+            background-color: var(--bg-code);
+            color: #f8fafc;
+            padding: 1.25rem;
+            border-radius: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            overflow-x: auto;
+            line-height: 1.5;
+            margin-top: 0.75rem;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: #f1f5f9;
+            color: var(--accent-primary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* Callout Boxes */
+        .callout {
+            border-left: 4px solid var(--accent-primary);
+            background-color: #f0f9ff;
+            padding: 1rem 1.25rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            margin: 1rem 0;
+        }
+
+        .callout.success {
+            border-left-color: var(--accent-success);
+            background-color: #f0fdf4;
+        }
+
+        .callout.warning {
+            border-left-color: var(--accent-warning);
+            background-color: #fffbeb;
+        }
+
+        /* Diff Highlight Colors */
+        .diff-add {
+            color: #4ade80;
+            font-weight: 600;
+        }
+        .diff-remove {
+            color: #f87171;
+            font-weight: 600;
+        }
+
+        /* Status Pills */
+        .pill {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .pill-success {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+            .print-bar {
+                display: none;
+            }
+            .card {
+                box-shadow: none;
+                border: 1px solid #cbd5e1;
+                page-break-inside: avoid;
+            }
+            header {
+                box-shadow: none;
+                background: #f1f5f9 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- Print Button -->
+        <div class="print-bar">
+            <button class="btn-print" onclick="window.print()">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                Print / Save as PDF
+            </button>
+        </div>
+
+        <!-- Hero Header -->
+        <header>
+            <span class="badge">Production Migration Guide</span>
+            <h1>Js Based Application: Nginx Architecture & Integration</h1>
+            <p class="subtitle">Technical guide detailing the transformation of the <strong>React 19 (Vite)</strong> client and <strong>Express Node.js</strong> backend into a high-performance, single-origin Nginx production stack.</p>
+        </header>
+
+        <!-- Executive Summary -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">🚀</span>
+                <h2 class="card-title">1. Executive Summary</h2>
+            </div>
+            <p>The <strong>Js Based</strong> application has been successfully migrated from a multi-port development layout to a unified production architecture powered by <strong>Nginx (Port 80)</strong>.</p>
+            
+            <div class="callout success">
+                <strong>Migration Status:</strong> <span class="pill pill-success">DEPLOYED & VERIFIED</span><br>
+                Nginx is currently serving compiled React static assets from disk and reverse-proxying Express API calls on <code>http://localhost/</code> with 0 CORS overhead.
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric / Feature</th>
+                        <th>Before (Dev Mode)</th>
+                        <th>After (Nginx Production Stack)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Access URL</strong></td>
+                        <td>Frontend: <code>:5173</code> | Backend: <code>:5000</code></td>
+                        <td>Unified Single Origin: <code>http://localhost/</code> (Port 80)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CORS Handling</strong></td>
+                        <td>Required explicit CORS middleware & origin permissions</td>
+                        <td><strong>Zero CORS needed</strong> (Frontend and API share Port 80)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Static Asset Delivery</strong></td>
+                        <td>Vite dev server bundle transformation overhead</td>
+                        <td><strong>Kernel <code>sendfile</code></strong> direct disk serving via Nginx</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SPA Route Refreshing</strong></td>
+                        <td>Vite dev server internal handling</td>
+                        <td>Nginx <code>try_files $uri $uri/ /index.html</code> fallback</td>
+                    </tr>
+                    <tr>
+                        <td><strong>RAM Usage</strong></td>
+                        <td>~150MB+ (Dev processes)</td>
+                        <td><strong>< 20MB</strong> for Nginx static serving</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Architecture Diagrams (Full Width & Spacious Light Mode) -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">❌</span>
+                <h2 class="card-title">Architecture BEFORE: Development Mode</h2>
+            </div>
+            <p>Browser connects to two separate ports, requiring cross-origin request handling (CORS headers and preflight checks).</p>
+            <div class="diagram-container">
+                <pre class="mermaid">
+graph LR
+    Client["Client Browser"] -->|"Port 5173 (Dev Build)"| Vite["Vite Dev Server (React 19)"]
+    Client -->|"Port 5000 (CORS API Call)"| Express["Express Node.js Backend"]
+                </pre>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">✅</span>
+                <h2 class="card-title">Architecture AFTER: Nginx Reverse Proxy Production Stack</h2>
+            </div>
+            <p>Clients connect exclusively to Nginx on Port 80. Nginx serves static compiled assets directly from disk and proxies <code>/api/*</code> traffic to Express on Port 5000.</p>
+            <div class="diagram-container">
+                <pre class="mermaid">
+graph LR
+    Client["Client Browser (Port 80)"] --> Nginx["Nginx Reverse Proxy (Port 80)"]
+    Nginx -->|"/ Direct Disk Serve"| Static["React Build (client/dist)"]
+    Nginx -->|"/api/* Reverse Proxy"| Express["Express Backend (Port 5000)"]
+                </pre>
+            </div>
+        </div>
+
+        <!-- Detailed Changes Performed -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">🛠️</span>
+                <h2 class="card-title">2. Detailed Summary of Changes Performed</h2>
+            </div>
+
+            <h3>Change 1: Frontend Client API Base URL Modification</h3>
+            <p>Updated <code>Js Based/client/src/api.js</code> to use relative URLs by default instead of a hardcoded backend port (<code>http://localhost:5000</code>).</p>
+
+            <pre><code><span class="diff-remove">- const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";</span>
+<span class="diff-add">+ const API_BASE_URL = import.meta.env.VITE_API_URL || "";</span>
+
+export async function fetchDashboardData() {
+  const res = await fetch(`${API_BASE_URL}/api/dashboard`);
+  if (!res.ok) {
+    throw new Error(`Dashboard API request failed with status ${res.status}`);
+  }
+  return res.json();
+}</code></pre>
+
+            <div class="callout warning">
+                <strong>Why this change matters:</strong> When <code>API_BASE_URL</code> is empty (<code>""</code>), the browser fetches <code>/api/dashboard</code> relative to the current window host (Port 80). Nginx receives <code>/api/dashboard</code> on port 80 and proxies it internally to <code>127.0.0.1:5000/api/dashboard</code>.
+            </div>
+
+            <h3 style="margin-top: 1.5rem;">Change 2: Compiled Optimized Production Build</h3>
+            <p>Ran Vite production build command in <code>Js Based/client</code>:</p>
+            <pre><code>npm run build</code></pre>
+            <p>This generated optimized static HTML, CSS, and JS chunks in <code>Js Based/client/dist</code>:</p>
+            <ul>
+                <li><code>dist/index.html</code> (HTML Entry Point)</li>
+                <li><code>dist/assets/index-Bd7QtbEb.js</code> (React 19 Bundle)</li>
+                <li><code>dist/assets/index-nr5b7YGH.css</code> (Compiled Stylesheet)</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;">Change 3: Nginx Configuration Updates</h3>
+            <p>Modified <code>C:\nginx\nginx-1.30.4\conf\nginx.conf</code> to declare both the static root and reverse proxy location blocks:</p>
+
+            <pre><code>server {
+    listen       80;
+    server_name  localhost;
+
+    # 1. REACT FRONTEND (Direct Static File Serving & SPA Fallback)
+    location / {
+        root   "C:/Users/Administrator/source/repos/Honda/Other Projects/Nginx demo/Js Based/client/dist";
+        index  index.html index.htm;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 2. EXPRESS NODE.JS BACKEND PROXY
+    location /api/ {
+        proxy_pass         http://127.0.0.1:5000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+    }
+}</code></pre>
+        </div>
+
+        <!-- Verification Results -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">🧪</span>
+                <h2 class="card-title">3. Live Verification Results</h2>
+            </div>
+            <p>All endpoints have been tested and confirmed operational on Port 80 through Nginx:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Target Endpoint</th>
+                        <th>Routed To</th>
+                        <th>HTTP Status</th>
+                        <th>Response Output Payload</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>http://localhost/</code></td>
+                        <td>React static <code>dist/index.html</code></td>
+                        <td><span class="pill pill-success">200 OK</span></td>
+                        <td>HTML document containing React entry <code>&lt;div id="root"&gt;&lt;/div&gt;</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>http://localhost/api/health</code></td>
+                        <td>Express <code>127.0.0.1:5000/api/health</code></td>
+                        <td><span class="pill pill-success">200 OK</span></td>
+                        <td><code>{"status":"ok"}</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>http://localhost/api/dashboard</code></td>
+                        <td>Express <code>127.0.0.1:5000/api/dashboard</code></td>
+                        <td><span class="pill pill-success">200 OK</span></td>
+                        <td>JSON object containing live revenue, orders, and sales activity data</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Management Cheat Sheet -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">⚙️</span>
+                <h2 class="card-title">4. Useful Nginx Commands Cheat Sheet</h2>
+            </div>
+            <pre><code># 1. Test Nginx Configuration Syntax
+cd C:\nginx\nginx-1.30.4
+.\nginx.exe -t
+
+# 2. Reload Nginx without downtime (after modifying nginx.conf)
+.\nginx.exe -s reload
+
+# 3. Graceful Shutdown
+.\nginx.exe -s quit
+
+# 4. Rebuild React Frontend (after modifying client code)
+cd "C:\Users\Administrator\source\repos\Honda\Other Projects\Nginx demo\Js Based\client"
+npm run build</code></pre>
+        </div>
+
+    </div>
+</body>
+</html>

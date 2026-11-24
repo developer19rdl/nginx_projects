@@ -1,0 +1,19 @@
+.css-16l5n7t-MuiTypography-root {
+
+    margin-bottom: 10px;
+
+}
+
+/* CSS file */
+.custom-gauge {
+    border: 2px solid #3498db;
+    border-radius: 50%;
+    box-shadow: 0px 0px 10px #3498db;
+}
+
+/* Inline styles */
+.css-1jw6em3-MuiTypography-root {
+
+    line-height: 1;
+
+}

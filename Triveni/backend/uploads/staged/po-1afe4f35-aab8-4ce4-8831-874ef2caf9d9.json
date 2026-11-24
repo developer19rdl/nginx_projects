@@ -1,0 +1,1 @@
+{"fileName":"ui-test-valid.xlsx","validRows":[{"customerName":"UI Test Co","priority":"P1","itemCode":"TEST-UI","machineId":4,"machineCode":"SLITTING-1","division":"A","size":"10mm","lotNo":"LOT-UI","quantity":100,"requiredMinutes":7.5,"sourceRowNo":2}],"errors":[]}

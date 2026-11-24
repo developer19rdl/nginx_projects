@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopFloor Client Deployment Guide | 192.168.8.8</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0f19;
+            --card-bg: rgba(18, 26, 43, 0.85);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.25);
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --code-bg: #070a12;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 40px 20px;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.1) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: 2.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #93c5fd 60%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        /* Architecture Card */
+        .arch-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 35px;
+        }
+
+        .arch-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .arch-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
+        .arch-card.erp::before {
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+        }
+
+        .arch-card.shopfloor::before {
+            background: linear-gradient(90deg, #06b6d4, #8b5cf6);
+        }
+
+        .arch-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .port-tag {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .port-tag.port-80 {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .port-tag.port-81 {
+            background: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .arch-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.92rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .arch-item:last-child {
+            border-bottom: none;
+        }
+
+        .arch-item span:first-child {
+            color: var(--text-muted);
+        }
+
+        .arch-item span:last-child {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+
+        /* Step Section */
+        .step-container {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+
+        .step-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 30px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .step-card:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            color: white;
+            font-weight: 800;
+            font-size: 1.25rem;
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3);
+            flex-shrink: 0;
+        }
+
+        .step-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .step-desc {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        /* Tree view */
+        .file-tree {
+            background: var(--code-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 18px 22px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+            color: #cbd5e1;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .file-tree .folder {
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .file-tree .file {
+            color: #94a3b8;
+        }
+
+        .file-tree .comment {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        /* Code Block with Copy */
+        .code-block {
+            position: relative;
+            background: var(--code-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.82rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: #94a3b8;
+        }
+
+        .copy-btn {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: #3b82f6;
+            color: #ffffff;
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        pre {
+            padding: 18px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        /* Checkbox list */
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .check-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .check-item input[type="checkbox"] {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+
+        .check-label {
+            flex: 1;
+            font-size: 0.95rem;
+        }
+
+        .check-label strong {
+            color: #ffffff;
+        }
+
+        .tip-box, .warning-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 18px 0;
+            font-size: 0.94rem;
+            line-height: 1.6;
+        }
+
+        .tip-box {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-left: 4px solid #3b82f6;
+            color: #dbeafe;
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            border-left: 4px solid #f59e0b;
+            color: #fef3c7;
+        }
+
+        .box-icon {
+            font-size: 1.3rem;
+            line-height: 1.3;
+            flex-shrink: 0;
+        }
+
+        .box-content {
+            flex: 1;
+            text-align: left;
+        }
+
+        .tip-box code, .warning-box code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 0.88rem;
+            color: #ffffff;
+            word-break: break-word;
+        }
+
+        kbd {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            color: #ffffff;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.92rem;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        td code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 3px 8px;
+            border-radius: 6px;
+            color: #38bdf8;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0 10px;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            border-top: 1px solid var(--card-border);
+        }
+
+        @media (max-width: 768px) {
+            .arch-grid {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <header>
+        <div class="badge">UltraViewer Rollout Guide</div>
+        <h1>ShopFloor Client Deployment</h1>
+        <p class="subtitle">Complete manual step-by-step checklist to deploy ShopFloor alongside Mallik ERP on the client machine (<code>192.168.8.8</code>).</p>
+    </header>
+
+    <!-- Architecture Overview -->
+    <div class="arch-grid">
+        <div class="arch-card erp">
+            <div class="arch-title">
+                <span>Mallik ERP (Untouched)</span>
+                <span class="port-tag port-80">PORT 80</span>
+            </div>
+            <div class="arch-item">
+                <span>URL</span>
+                <span>http://192.168.8.8/</span>
+            </div>
+            <div class="arch-item">
+                <span>Frontend Path</span>
+                <span>D:/ERP/Client/</span>
+            </div>
+            <div class="arch-item">
+                <span>Backend Proxy</span>
+                <span>127.0.0.1:8000</span>
+            </div>
+            <div class="arch-item">
+                <span>Config File</span>
+                <span>locations/erp.locations.conf</span>
+            </div>
+        </div>
+
+        <div class="arch-card shopfloor">
+            <div class="arch-title">
+                <span>ShopFloor (New Deployment)</span>
+                <span class="port-tag port-81">PORT 81</span>
+            </div>
+            <div class="arch-item">
+                <span>URL</span>
+                <span>http://192.168.8.8:81/</span>
+            </div>
+            <div class="arch-item">
+                <span>Frontend Path</span>
+                <span>D:/ERP/ShopFloor/Frontend/build/</span>
+            </div>
+            <div class="arch-item">
+                <span>Backend Process</span>
+                <span>server.exe (127.0.0.1:8003)</span>
+            </div>
+            <div class="arch-item">
+                <span>Config File</span>
+                <span>locations/shopfloor.locations.conf</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step Container -->
+    <div class="step-container">
+
+        <!-- STEP 1 -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <div>
+                    <h2 class="step-title">Transfer & Extract Package</h2>
+                    <p class="step-desc">Transfer the standalone zip archive through UltraViewer to the client server.</p>
+                </div>
+            </div>
+
+            <div class="check-item">
+                <input type="checkbox" id="chk1">
+                <label for="chk1" class="check-label">
+                    Drag and drop <strong><code>ShopFloor_Client_Deployment.zip</code></strong> via UltraViewer onto the client server.
+                </label>
+            </div>
+
+            <div class="check-item">
+                <input type="checkbox" id="chk2">
+                <label for="chk2" class="check-label">
+                    Extract the archive to <strong><code>D:\ERP\ShopFloor</code></strong>.
+                </label>
+            </div>
+
+            <div class="tip-box">
+                <span class="box-icon">ℹ️</span>
+                <div class="box-content">
+                    <strong>Path Note:</strong> If the client machine only has a <code>C:</code> drive, extract to <code>C:\ShopFloor</code> instead, and simply change <code>D:/ERP/ShopFloor/Frontend/build/</code> to <code>C:/ShopFloor/Frontend/build/</code> in <code>shopfloor.locations.conf</code>.
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <div>
+                    <h2 class="step-title">Setup Clean Modular Nginx (Manual)</h2>
+                    <p class="step-desc">Organize Nginx into clean, isolated modules so configs never get jumbled.</p>
+                </div>
+            </div>
+
+            <p style="margin-bottom: 14px; color: #cbd5e1;">1. Open the client's Nginx configuration folder in File Explorer (e.g. <code>C:\nginx-1.31.5\conf\</code>):</p>
+            
+            <div class="check-item">
+                <input type="checkbox" id="chk3">
+                <label for="chk3" class="check-label">
+                    Rename existing <strong><code>nginx.conf</code></strong> to <strong><code>nginx.conf.bak</code></strong> (as a backup).
+                </label>
+            </div>
+
+            <div class="check-item">
+                <input type="checkbox" id="chk4">
+                <label for="chk4" class="check-label">
+                    Create a new subfolder named <strong><code>locations</code></strong> inside <code>conf\</code>.
+                </label>
+            </div>
+
+            <p style="margin: 18px 0 10px; color: #cbd5e1;">2. Copy the 3 files from our deployment package into Nginx:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Source (from extracted package)</th>
+                        <th>Copy Destination on Client</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Nginx\nginx.conf</code></td>
+                        <td><code>C:\nginx-1.31.5\conf\nginx.conf</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Nginx\locations\erp.locations.conf</code></td>
+                        <td><code>C:\nginx-1.31.5\conf\locations\erp.locations.conf</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Nginx\locations\shopfloor.locations.conf</code></td>
+                        <td><code>C:\nginx-1.31.5\conf\locations\shopfloor.locations.conf</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="margin: 18px 0 10px; color: #cbd5e1;">Resulting clean client Nginx structure:</p>
+
+            <div class="file-tree">
+<span class="folder">C:\nginx-1.31.5\conf\</span><br>
+├── <span class="folder">locations\</span><br>
+│   ├── <span class="file">erp.locations.conf</span>          <span class="comment"># Port 80 (Mallik ERP 100% untouched)</span><br>
+│   └── <span class="file">shopfloor.locations.conf</span>    <span class="comment"># Port 81 (ShopFloor Frontend + API)</span><br>
+├── <span class="file">mime.types</span><br>
+└── <span class="file">nginx.conf</span>                      <span class="comment"># Clean master orchestrator</span>
+            </div>
+
+            <p style="margin: 18px 0 10px; color: #cbd5e1;">3. Test and reload Nginx:</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span>Command Prompt / PowerShell</span>
+                    <button class="copy-btn" onclick="copyCode(this, 'cd C:\\nginx-1.31.5\n.\\nginx.exe -t\n.\\nginx.exe -s reload')">Copy</button>
+                </div>
+                <pre><code>cd C:\nginx-1.31.5
+.\nginx.exe -t
+.\nginx.exe -s reload</code></pre>
+            </div>
+
+            <div class="check-item">
+                <input type="checkbox" id="chk5">
+                <label for="chk5" class="check-label">
+                    Verify that <code>nginx.exe -t</code> returns <strong>syntax is ok</strong> and <strong>test is successful</strong>.
+                </label>
+            </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">3</div>
+                <div>
+                    <h2 class="step-title">Configure Backend Database (.env)</h2>
+                    <p class="step-desc">Verify local MySQL/MariaDB credentials and hardware licensing.</p>
+                </div>
+            </div>
+
+            <p style="margin-bottom: 12px; color: #cbd5e1;">Open <code>D:\ERP\ShopFloor\Backend\.env</code> in Notepad:</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span>D:\ERP\ShopFloor\Backend\.env</span>
+                    <button class="copy-btn" onclick="copyCode(this, 'APP_URL = \'http://192.168.8.8:81\'\nAPP_HOST = \'127.0.0.1\'\nAPP_PORT = 8003\n\nDB_HOST = 127.0.0.1\nDB_PORT = 3306\nDB_DATABASE = mallik_demo3\nDB_USER = root\nDB_PASSWORD = root\n\nSKIP_MAC_VALIDATION = false')">Copy</button>
+                </div>
+                <pre><code>APP_URL = 'http://192.168.8.8:81'
+APP_HOST = '127.0.0.1'
+APP_PORT = 8003
+
+# Database Settings (Update password if different)
+DB_HOST = 127.0.0.1
+DB_PORT = 3306
+DB_DATABASE = mallik_demo3
+DB_USER = root
+DB_PASSWORD = your_actual_db_password
+
+# Hardware MAC Validation:
+SKIP_MAC_VALIDATION = false</code></pre>
+            </div>
+
+            <div class="warning-box">
+                <span class="box-icon">⚠️</span>
+                <div class="box-content">
+                    <strong>MAC Licensing Tip:</strong> If the backend console prints <code>Unauthorized access</code>, simply open <code>.env</code> and set <strong><code>SKIP_MAC_VALIDATION = true</code></strong>, or set <code>ALLOWED_MACS = 'client_mac_here'</code>. No need to recompile!
+                </div>
+            </div>
+
+            <div class="check-item">
+                <input type="checkbox" id="chk6">
+                <label for="chk6" class="check-label">
+                    Verified database port (3306) and credentials match client's MySQL/MariaDB server.
+                </label>
+            </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">4</div>
+                <div>
+                    <h2 class="step-title">Start Backend & Allow Port 81 in Firewall</h2>
+                    <p class="step-desc">Launch the standalone backend executable and open client network access.</p>
+                </div>
+            </div>
+
+            <p style="margin-bottom: 12px; color: #cbd5e1;">1. Open Windows Firewall for Port 81 (Run in Admin PowerShell):</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span>PowerShell (Run as Administrator)</span>
+                    <button class="copy-btn" onclick="copyCode(this, 'New-NetFirewallRule -DisplayName \"ShopFloor 81\" -Direction Inbound -LocalPort 81 -Protocol TCP -Action Allow')">Copy</button>
+                </div>
+                <pre><code>New-NetFirewallRule -DisplayName "ShopFloor 81" -Direction Inbound -LocalPort 81 -Protocol TCP -Action Allow</code></pre>
+            </div>
+
+            <p style="margin: 18px 0 10px; color: #cbd5e1;">2. Start the Backend Executable:</p>
+            <div class="check-item">
+                <input type="checkbox" id="chk7">
+                <label for="chk7" class="check-label">
+                    Double-click <strong><code>D:\ERP\ShopFloor\Backend\server.exe</code></strong> (or <code>start_backend.bat</code>).
+                </label>
+            </div>
+
+            <p style="margin: 12px 0; color: #34d399; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem;">
+                ✓ Output should display: <strong>Server running on http://127.0.0.1:8003</strong>
+            </p>
+
+            <div class="tip-box">
+                <span class="box-icon">💡</span>
+                <div class="box-content">
+                    <strong>Optional Windows Autostart:</strong> To make <code>server.exe</code> automatically start when Windows boots up, press <kbd>Win + R</kbd>, type <code>shell:startup</code>, and paste a shortcut to <code>server.exe</code> (or <code>start_backend.bat</code>) into that folder.
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="step-card">
+            <div class="step-header">
+                <div class="step-number">5</div>
+                <div>
+                    <h2 class="step-title">Verify Live Access in Browser</h2>
+                    <p class="step-desc">Test both applications from any browser on the client network.</p>
+                </div>
+            </div>
+
+            <div class="check-item">
+                <input type="checkbox" id="chk8">
+                <label for="chk8" class="check-label">
+                    <strong>Mallik ERP (Port 80):</strong> Navigate to <code>http://192.168.8.8/</code>. Verify it redirects to <code>/MallikEngineering/</code> and works untouched.
+                </label>
+            </div>
+
+            <div class="check-item">
+                <input type="checkbox" id="chk9">
+                <label for="chk9" class="check-label">
+                    <strong>ShopFloor (Port 81):</strong> Navigate to <code>http://192.168.8.8:81/</code>. Log in with user credentials and verify dashboard loads data.
+                </label>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>ShopFloor & Mallik ERP Multi-App Architecture • Client Server 192.168.8.8</p>
+    </footer>
+
+</div>
+
+<script>
+    function copyCode(button, text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const original = button.innerText;
+            button.innerText = 'Copied!';
+            button.classList.add('copied');
+            setTimeout(() => {
+                button.innerText = original;
+                button.classList.remove('copied');
+            }, 2000);
+        });
+    }
+</script>
+
+</body>
+</html>

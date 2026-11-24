@@ -1,0 +1,127 @@
+.oee_bottomContainer {
+    /* border: 1px solid rgb(159, 159, 159); */
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+
+.oee_headerContainer {
+    background-color: #f7f7fc;
+    padding: 20px;
+    border-radius: 5px 5px 0 0;
+}
+
+.oee_datePicker {
+    width: 270px;
+    height: 55px;
+    border-radius: 5px;
+    color: gray;
+    border: 1px solid #c2c2c2;
+    font-size: 18px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.oee_datePicker:hover {
+    border: 1px solid #000000;
+}
+
+.oee_from_date_Container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.oee_to_date_Container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.oee_from_date_header {
+    width: 200px;
+}
+
+.oee_bottm_date_containet {
+    padding-top: 25px;
+    padding-bottom: 25px;
+}
+
+.oee_button_container {
+    display: flex;
+    justify-content: center;
+    /* margin-top: 10px;
+    align-items: 'center'; */
+}
+
+.oee_radio_Container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Table CSS */
+
+.energy_table_sub_bottomContainer {
+    margin-top: 25px;
+    overflow-x: scroll;
+}
+
+.tableHeader {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(-180deg);
+    white-space: nowrap;
+}
+
+/* .tableData:first-child {
+    writing-mode: vertical-rl;
+    width: 100px;
+
+} */
+
+#OeeCustomers {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    /* margin: 25px; */
+}
+
+#OeeCustomers td,
+#OeeCustomers th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#OeeCustomers th:first-child {
+    /* padding: 40px; */
+}
+
+#OeeCustomers tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#OeeCustomers tr:hover {
+    background-color: #ddd;
+}
+
+#OeeCustomers th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    background-color: #91d6f1;
+    color: #424242;
+    text-align: center;
+}
+
+#OeeCustomers td {
+    color: #474F69;
+    text-align: center;
+}
+
+.bottomButtonContainer {
+    background-color: #F3FAFA;
+}

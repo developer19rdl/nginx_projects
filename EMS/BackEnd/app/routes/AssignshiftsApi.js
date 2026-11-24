@@ -1,0 +1,10 @@
+const shifts = require('../controllers/AssignShiftAssignShift.js');
+const router = require("express").Router();
+router.get("/template", shifts.assigndownloadtemp);
+router.post("/importAssignShift", shifts.mstImport);
+router.get("/show", shifts.show);
+router.put("/rescheduleedit/:id", shifts.editreschedule);
+router.get("/reschedule", shifts.rescheduledownloadtemp);
+router.post("/rescheduleupdate", shifts.Importreschedule);
+router.delete("/:id", shifts.delete);
+module.exports = router;

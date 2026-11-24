@@ -1,0 +1,225 @@
+================================================================================
+TRIVENI MES - PRODUCTION DEPLOYMENT GUIDE (WINDOWS SERVICES WITH NSSM)
+================================================================================
+
+This guide explains how to install and run both Triveni Backend and Nginx as
+automatic background Windows Services using NSSM (Non-Sucking Service Manager).
+
+Benefits of using NSSM:
+  - Both services start automatically when Windows boots (no user login required)
+  - Auto-restart if a process ever crashes
+  - Runs silently in the background (no cmd/terminal windows left open)
+  - Automatically captures and rotates stdout/stderr log files
+
+================================================================================
+PART 1: RECOMMENDED FOLDER STRUCTURE ON SERVER
+================================================================================
+
+Extract and place your files in the following standard production locations
+(or adjust paths to match your preferred drive/folder):
+
+1. TRIVENI APPLICATION:
+   C:\Triveni\
+   ├── backend\
+   │   ├── triveni-backend.exe
+   │   ├── .env
+   │   ├── uploads\
+   │   └── logs\
+   ├── frontend\
+   │   └── dist\
+   │       ├── index.html
+   │       └── assets\
+   └── operator\
+       └── dist\
+           ├── index.html
+           └── assets\
+
+2. NGINX WEB SERVER:
+   C:\nginx\   (or C:\nginx-1.31.5\)
+   ├── nginx.exe
+   ├── conf\
+   │   ├── nginx.conf
+   │   └── mime.types
+   ├── logs\
+   └── html\
+
+3. NSSM EXECUTABLE:
+   Download NSSM from https://nssm.cc/download (or via winget: winget install nssm)
+   Extract win64\nssm.exe to a permanent folder, for example:
+   C:\tools\nssm.exe  (or place inside C:\Windows\System32\)
+
+================================================================================
+PART 2: CONFIGURE THE FILES BEFORE CREATING SERVICES
+================================================================================
+
+1. CONFIGURE BACKEND (.env):
+   Open "C:\Triveni\backend\.env" in Notepad:
+     - Set your database host, port, user, and password:
+         DB_HOST=127.0.0.1
+         DB_PORT=3307          # or 3306
+         DB_NAME=triveni
+         DB_USER=root
+         DB_PASSWORD=your_password
+     - Verify backend port:
+         PORT=5050
+     - Save and close.
+
+2. CONFIGURE NGINX (nginx.conf):
+   Open "C:\nginx\conf\nginx.conf":
+   Ensure the static directory paths match where frontend/dist and operator/dist
+   are extracted (ALWAYS use forward slashes `/` in Nginx config):
+
+     # 1. Operator Web App
+     location ^~ /operator/ {
+         alias "C:/Triveni/operator/dist/";
+         index index.html;
+         try_files $uri $uri/ /operator/index.html;
+     }
+
+     # 2. Admin & Management Portal
+     location / {
+         root "C:/Triveni/frontend/dist";
+         index index.html;
+         try_files $uri $uri/ /index.html;
+     }
+
+     # 3. Backend API Proxy (already points to backend port 5050)
+     location /api/ {
+         proxy_pass http://127.0.0.1:5050/api/;
+     }
+
+     # 4. WebSockets Proxy
+     location /socket.io/ {
+         proxy_pass http://127.0.0.1:5050/socket.io/;
+     }
+
+   Save and close.
+
+3. TEST NGINX CONFIGURATION SYNTAX:
+   Open Administrator Command Prompt or PowerShell:
+     cd C:\nginx
+     .\nginx.exe -t
+   Verify you see:
+     "nginx: configuration file ... syntax is ok"
+     "nginx: configuration file ... test is successful"
+
+================================================================================
+PART 3: INSTALL SERVICES USING NSSM
+================================================================================
+
+Open Command Prompt as ADMINISTRATOR (Right-click cmd -> Run as Administrator).
+(Assuming nssm.exe is located at C:\tools\nssm.exe or in your PATH)
+
+--------------------------------------------------------------------------------
+SERVICE 1: TRIVENI BACKEND SERVICE (TriveniBackend)
+--------------------------------------------------------------------------------
+
+Run the following commands one by one:
+
+1. Create the service pointing to the backend executable:
+   nssm install TriveniBackend "C:\Triveni\backend\triveni-backend.exe"
+
+2. Set the working directory (CRITICAL so it finds .env and uploads alongside the exe):
+   nssm set TriveniBackend AppDirectory "C:\Triveni\backend"
+
+3. Set display name and description:
+   nssm set TriveniBackend DisplayName "Triveni MES Backend Server"
+   nssm set TriveniBackend Description "Node.js Express & Socket.IO backend for Triveni MES"
+
+4. Set service to start automatically with Windows:
+   nssm set TriveniBackend Start SERVICE_AUTO_START
+
+5. Configure log output redirection:
+   nssm set TriveniBackend AppStdout "C:\Triveni\backend\logs\service-stdout.log"
+   nssm set TriveniBackend AppStderr "C:\Triveni\backend\logs\service-stderr.log"
+
+6. Enable log rotation (rotates when log reaches 10 MB):
+   nssm set TriveniBackend AppRotateFiles 1
+   nssm set TriveniBackend AppRotateBytes 10485760
+
+--------------------------------------------------------------------------------
+SERVICE 2: NGINX REVERSE PROXY SERVICE (TriveniNginx)
+--------------------------------------------------------------------------------
+
+Run the following commands:
+
+1. Create the service pointing to nginx.exe:
+   nssm install TriveniNginx "C:\nginx\nginx.exe"
+
+2. Set the working directory:
+   nssm set TriveniNginx AppDirectory "C:\nginx"
+
+3. Set display name and description:
+   nssm set TriveniNginx DisplayName "Triveni MES Nginx Reverse Proxy"
+   nssm set TriveniNginx Description "Nginx reverse proxy for Triveni MES frontend, operator, and API"
+
+4. Set service to start automatically with Windows:
+   nssm set TriveniNginx Start SERVICE_AUTO_START
+
+5. Configure graceful shutdown for Nginx:
+   nssm set TriveniNginx AppStopMethodSkip 0
+   nssm set TriveniNginx AppStopMethodConsole 1500
+   nssm set TriveniNginx AppStopMethodWindow 1500
+   nssm set TriveniNginx AppStopMethodThreads 0
+
+6. Configure log output redirection:
+   nssm set TriveniNginx AppStdout "C:\nginx\logs\service-stdout.log"
+   nssm set TriveniNginx AppStderr "C:\nginx\logs\service-stderr.log"
+
+================================================================================
+PART 4: START AND MANAGE THE SERVICES
+================================================================================
+
+1. START THE SERVICES:
+   nssm start TriveniBackend
+   nssm start TriveniNginx
+
+2. CHECK SERVICE STATUS:
+   nssm status TriveniBackend
+   nssm status TriveniNginx
+   (Both should return: SERVICE_RUNNING)
+
+3. OTHER SERVICE MANAGEMENT COMMANDS:
+   - Stop a service:
+       nssm stop TriveniBackend
+       nssm stop TriveniNginx
+
+   - Restart a service (e.g., after editing backend .env):
+       nssm restart TriveniBackend
+
+   - Reload Nginx config without restarting:
+       cd C:\nginx
+       nginx.exe -s reload
+
+   - Open NSSM GUI editor to adjust settings:
+       nssm edit TriveniBackend
+       nssm edit TriveniNginx
+
+   - Remove / Uninstall a service:
+       nssm remove TriveniBackend confirm
+       nssm remove TriveniNginx confirm
+
+   - View in Windows Services GUI:
+       Press Win + R, type `services.msc`, and press Enter.
+       Locate "Triveni MES Backend Server" and "Triveni MES Nginx Reverse Proxy".
+
+================================================================================
+PART 5: VERIFY DEPLOYMENT
+================================================================================
+
+Open your web browser and verify:
+
+1. Backend Health Check:
+   http://localhost/health
+   -> Expected response: {"status":"ok", ...}
+
+2. Admin & Management Portal:
+   http://localhost/   (or http://<server-ip>/)
+
+3. Shop-Floor Operator UI:
+   http://localhost/operator/   (or http://<server-ip>/operator/)
+
+4. Check Log Files if any issue occurs:
+   - Backend Logs:  C:\Triveni\backend\logs\
+   - Nginx Logs:    C:\nginx\logs\error.log and access.log
+================================================================================

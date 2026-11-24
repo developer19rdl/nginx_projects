@@ -1,0 +1,23 @@
+#GuageTable {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    /* width: 100%; */
+  }
+  
+  #GuageTable td, #GuageTable th {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  
+  /* #GuageTable tr:nth-child(even){background-color: #f2f2f2;} */
+  #GuageTable tr{background-color: #f2f2f2;}
+  
+  #GuageTable tr:hover {background-color: #ddd;}
+  
+  #GuageTable th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #4B70F5;
+    color: white;
+  }

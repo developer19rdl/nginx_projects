@@ -1,0 +1,528 @@
+/* ── Static client-image layout (active) ──────────────── */
+.pml-static-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0b0e1a;
+}
+
+.pml-static-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.pml-india-hotspot {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(229, 57, 53, 0.9);
+  background: rgba(229, 57, 53, 0.3);
+  padding: 0;
+  cursor: pointer;
+  animation: pml-hotspot-pulse 1.8s ease-in-out infinite;
+}
+
+.pml-india-hotspot:hover,
+.pml-india-hotspot:focus-visible {
+  background: rgba(229, 57, 53, 0.55);
+}
+
+@keyframes pml-hotspot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.5); }
+  50% { box-shadow: 0 0 0 8px rgba(229, 57, 53, 0); }
+}
+
+/* ── View legend (In-house / ODM-CM hover toggle) ─────────
+   The IN-HOUSE / ODM-CM swatch bars are already drawn into the artwork
+   itself — this overlay sits directly on top of them (positioned/sized via
+   inline style from LEGEND_BOX_FRACTION) as two invisible, stacked hover
+   targets. No visible box/background of our own; just a subtle highlight
+   on hover so it's clear which half is being toggled. */
+.pml-view-legend {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+}
+
+.pml-view-legend-row {
+  flex: 1;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+}
+
+.pml-view-legend-row:hover,
+.pml-view-legend-row.active,
+.pml-view-legend-row:focus-visible {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.pml-view-label {
+  /* Visually hidden — the label text is already baked into the image next
+     to each bar; this just keeps the hit target accessible by name. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* ── Root Layout (Google Maps version, kept for reuse) ── */
+.pml-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a1d2e;
+  font-family: 'Segoe UI', sans-serif;
+  color: #e0e0e0;
+  overflow: hidden;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+.pml-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 20px;
+  background: linear-gradient(90deg, #1a1d2e 0%, #22263b 100%);
+  border-bottom: 2px solid #e53935;
+  min-height: 52px;
+}
+
+.pml-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pml-header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.pml-header-sub {
+  font-size: 12px;
+  color: #9e9e9e;
+  background: rgba(255,255,255,0.08);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.pml-stat-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pml-chip {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pml-chip-total    { background: rgba(255,255,255,0.1); color: #fff; }
+.pml-chip-active   { background: rgba(0,200,83,0.2);   color: #00c853; border: 1px solid #00c853; }
+.pml-chip-maint    { background: rgba(255,152,0,0.2);  color: #ff9800; border: 1px solid #ff9800; }
+.pml-chip-inactive { background: rgba(117,117,117,0.2);color: #bdbdbd; border: 1px solid #757575; }
+
+/* ── Body ────────────────────────────────────────────── */
+.pml-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+.pml-sidebar {
+  width: 310px;
+  min-width: 280px;
+  background: #22263b;
+  border-right: 1px solid #2e3150;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pml-search-row {
+  position: relative;
+  padding: 12px 14px 6px;
+}
+
+.pml-search-icon {
+  position: absolute;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #757575;
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.pml-search {
+  width: 100%;
+  padding: 8px 10px 8px 32px;
+  background: #1a1d2e;
+  border: 1px solid #3a3f60;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.pml-search:focus {
+  border-color: #e53935;
+}
+
+.pml-filter-row {
+  display: flex;
+  gap: 6px;
+  padding: 6px 14px 10px;
+  flex-wrap: wrap;
+}
+
+.pml-filter-btn {
+  flex: 1;
+  padding: 4px 6px;
+  background: #1a1d2e;
+  border: 1px solid #3a3f60;
+  border-radius: 4px;
+  color: #9e9e9e;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.pml-filter-btn.active,
+.pml-filter-btn:hover {
+  background: #e53935;
+  border-color: #e53935;
+  color: #fff;
+}
+
+.pml-plant-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #3a3f60 #22263b;
+}
+
+.pml-plant-list::-webkit-scrollbar { width: 6px; }
+.pml-plant-list::-webkit-scrollbar-track { background: #22263b; }
+.pml-plant-list::-webkit-scrollbar-thumb { background: #3a3f60; border-radius: 3px; }
+
+.pml-no-results {
+  text-align: center;
+  color: #757575;
+  margin-top: 24px;
+  font-size: 13px;
+}
+
+/* ── Plant Card ──────────────────────────────────────── */
+.pml-plant-card {
+  background: #1a1d2e;
+  border: 1px solid #2e3150;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pml-plant-card:hover {
+  border-color: #5c6bc0;
+  box-shadow: 0 0 0 1px #5c6bc0;
+}
+
+.pml-plant-card.selected {
+  border-color: #e53935;
+  box-shadow: 0 0 0 1px #e53935;
+}
+
+.pml-plant-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.pml-status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 4px currentColor;
+}
+
+.pml-plant-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.3;
+}
+
+.pml-plant-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #9e9e9e;
+  margin-top: 3px;
+}
+
+.pml-plant-meta .fa {
+  font-size: 11px;
+  color: #616d96;
+  width: 14px;
+  text-align: center;
+}
+
+.pml-region-tag {
+  margin-left: auto;
+  background: rgba(92,107,192,0.2);
+  color: #7986cb;
+  padding: 1px 7px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.pml-open-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px;
+  background: linear-gradient(90deg, #e53935, #c62828);
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pml-open-btn:hover {
+  opacity: 0.85;
+}
+
+/* ── Legend ──────────────────────────────────────────── */
+.pml-legend {
+  padding: 10px 14px;
+  border-top: 1px solid #2e3150;
+}
+
+.pml-legend-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #616d96;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+
+.pml-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #bdbdbd;
+  margin-bottom: 4px;
+}
+
+.pml-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Map ─────────────────────────────────────────────── */
+.pml-map-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.pml-map-wrap .gm-style-iw-c {
+  background: #22263b;
+  border-radius: 10px;
+  border: 1px solid #3a3f60;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  padding: 0;
+}
+
+.pml-map-wrap .gm-style-iw-d {
+  overflow: auto !important;
+  padding: 0;
+}
+
+.pml-map-wrap .gm-style-iw-t::after {
+  background: #22263b;
+}
+
+.pml-map-wrap .gm-ui-hover-effect {
+  filter: invert(1);
+  opacity: 0.7;
+}
+
+.pml-map-tip {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26,29,46,0.88);
+  color: #bdbdbd;
+  font-size: 12px;
+  padding: 5px 14px;
+  border-radius: 12px;
+  pointer-events: none;
+  z-index: 1000;
+  white-space: nowrap;
+}
+
+/* ── Popup (Google Maps InfoWindow content) ───────────── */
+.pml-popup-inner {
+  padding: 12px 14px;
+  min-width: 230px;
+  color: #e0e0e0;
+}
+
+.pml-popup-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pml-popup-status {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: #fff;
+}
+
+.pml-popup-type {
+  font-size: 11px;
+  color: #9e9e9e;
+  background: rgba(255,255,255,0.08);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.pml-popup-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.pml-popup-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #9e9e9e;
+  margin-bottom: 3px;
+}
+
+.pml-popup-row .fa {
+  color: #616d96;
+  width: 14px;
+  text-align: center;
+}
+
+.pml-popup-desc {
+  font-size: 11px;
+  color: #757575;
+  margin-top: 6px;
+  border-top: 1px solid #2e3150;
+  padding-top: 6px;
+  line-height: 1.4;
+}
+
+.pml-popup-nav-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  background: linear-gradient(90deg, #e53935, #c62828);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+}
+
+.pml-popup-nav-btn:hover {
+  opacity: 0.85;
+}
+
+/* ── Loading ─────────────────────────────────────────── */
+.pml-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #1a1d2e;
+  color: #9e9e9e;
+  gap: 16px;
+}
+
+.pml-spinner {
+  width: 44px;
+  height: 44px;
+  border: 4px solid #2e3150;
+  border-top-color: #e53935;
+  border-radius: 50%;
+  animation: pml-spin 0.8s linear infinite;
+}
+
+@keyframes pml-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  .pml-body {
+    flex-direction: column;
+  }
+
+  .pml-sidebar {
+    width: 100%;
+    min-width: unset;
+    max-height: 45vh;
+    border-right: none;
+    border-bottom: 1px solid #2e3150;
+  }
+
+  .pml-map-wrap {
+    min-height: 55vh;
+  }
+}

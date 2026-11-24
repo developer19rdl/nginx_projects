@@ -1,0 +1,39 @@
+.css-7ldjcq-MuiGrid-root {
+
+    margin-left: 0px;
+    margin-bottom: -20px;
+
+}
+
+
+.css-sskem8-MuiTypography-root {
+
+    line-height: 0;
+
+    margin-bottom: 0;
+
+}
+
+.link {
+    text-decoration: none;
+}
+
+/* ProgressBar.css */
+.progress-containers {
+    position: relative;
+}
+
+.progress-texts {
+    position: absolute;
+    padding: 3px;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: "black";
+    /* Change the text color here */
+    background-color: #ffff;
+    font-size: 25px;
+    font-weight:500;
+    width: "100%";
+   
+}

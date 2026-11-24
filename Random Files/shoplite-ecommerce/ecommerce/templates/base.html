@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ShopLite{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('home') }}" class="logo">Shop<span>LITE</span></a>
+            <form class="search-bar" action="{{ url_for('home') }}" method="get">
+                <input type="text" name="search" placeholder="Search products..."
+                       value="{{ search or '' }}" autocomplete="off">
+                <button type="submit">Search</button>
+            </form>
+            <div class="nav-links">
+                <a href="{{ url_for('home') }}" class="nav-link">Products</a>
+                <a href="{{ url_for('cart') }}" class="nav-link cart-link">
+                    Cart
+                    {% if cart_count is defined and cart_count > 0 %}
+                    <span class="cart-badge">{{ cart_count }}</span>
+                    {% endif %}
+                </a>
+                {% if session.get('username') %}
+                    <span class="nav-user">Hi, {{ session.username }}</span>
+                    <a href="{{ url_for('logout') }}" class="nav-link btn-outline">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-link btn-outline">Login</a>
+                {% endif %}
+            </div>
+            <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')">
+                &#9776;
+            </button>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>ShopLITE &mdash; Lightweight E-Commerce Demo</p>
+    </footer>
+
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.flash').forEach(el => el.remove());
+        }, 3000);
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

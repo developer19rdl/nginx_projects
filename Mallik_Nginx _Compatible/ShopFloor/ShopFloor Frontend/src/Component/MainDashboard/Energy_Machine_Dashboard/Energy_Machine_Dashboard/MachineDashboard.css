@@ -1,0 +1,24 @@
+.css-11xv1ts-MuiTypography-root {
+
+    line-height: 1.3;
+
+}
+
+
+.responsive-text {
+    font-size: 22px;
+  }
+  
+  /* Media query for small screens (adjust the screen width as needed) */
+  @media screen and (max-width: 768px) {
+    .responsive-text {
+      font-size: 18px; /* Change font size for small screens */
+    }
+  }
+  
+  
+  
+  
+  
+  
+  

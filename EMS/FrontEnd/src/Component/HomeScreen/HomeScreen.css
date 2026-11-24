@@ -1,0 +1,51 @@
+.home-container {
+  display: flex;
+  /* overflow: scroll; */
+}
+
+.sidebar-container {
+  width: 60px;
+  /* Initial width of the Sidebar */
+  overflow: hidden;
+  transition: width 0.3s ease;
+  /* Add transition for smooth width change */
+}
+
+.sidebar-container:hover {
+  width: 250px;
+  /* Expanded width of the Sidebar on hover */
+}
+
+.home-OutLet {
+  flex: 1;
+  height: 100vh;
+  /* padding: 20px; */
+  background-color: #f0f0f0;
+  transition: margin-left 0.3s ease;
+  overflow-x: hidden;
+  /* Every page here was previously short enough to always fit in 100vh, so this
+     never mattered; a page whose content now runs taller (e.g. Plant Overview
+     with its consumption panel) would otherwise have no way to reveal the
+     overflow — Footer's "space-between" position just sits on top of it with
+     no scrollbar. auto is a no-op for every page that still fits (unchanged
+     from before), and only kicks in as a safety net when content doesn't. */
+  overflow-y: auto;
+  /* Add transition for smooth content shift */
+  /* ADDITIONAL STYLE ADDED FOR FOOTER */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar-text {
+  margin-left: 0px;
+  /* Shift the text content off-screen initially */
+  transition: margin-left 0.3s ease;
+  /* Add transition for smooth text shift */
+  z-index: 1002;
+}
+
+.sidebar-container:hover .sidebar-text {
+  margin-left: 0;
+  /* Shift the text content back to its position on hover */
+}

@@ -1,0 +1,75 @@
+.view_container{
+    background-color: rgb(255, 255, 255);
+    border: 1px solid #DCDCDC;
+    border-radius: 5px;
+}
+.view_subcontainer{
+    background-color: #f7f7fc;
+    padding: 20px;
+    border-radius: 5px 5px 0 0 ;
+}
+/* table css  */
+.view_tableContainer {
+    margin: 25px;
+    overflow-x: scroll;
+}
+
+.tableHeader {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(-180deg);
+    white-space: nowrap;
+}
+
+#customers {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    /* margin: 25px; */
+}
+
+#customers td,
+#customers th {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#customers tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#customers tr:hover {
+    background-color: #ddd;
+}
+
+#customers th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    background-color: #F3FAFA;
+    color: #424242;
+    text-align: center;
+}
+
+#customers td {
+    color: #474F69;
+    text-align: center;
+}
+
+.bottomButtonContainer {
+    background-color: #F3FAFA;
+}
+
+.editViewIconStyle{
+    color: rgb(0, 0, 0);
+    cursor: pointer;
+}
+.editViewIconStyle:hover{
+    color: #474F69;
+}
+.deleteViewIconStyle{
+    color: rgb(0, 0, 0);
+    cursor: pointer;
+}
+.deleteViewIconStyle:hover{
+    color: #474F69;
+}

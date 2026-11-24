@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration Guide: XAMPP to Nginx + Native MariaDB + Node.js + React</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Mermaid.js for Diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'neutral',
+            themeVariables: {
+                darkMode: false,
+                background: '#ffffff',
+                mainBkg: '#f8fafc',
+                nodeBkg: '#ffffff',
+                nodeBorder: '#4f46e5',
+                clusterBkg: '#f1f5f9',
+                clusterBorder: '#cbd5e1',
+                defaultLinkColor: '#4f46e5',
+                titleColor: '#0f172a',
+                edgeLabelBackground: '#ffffff',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '16px'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-diagram: #ffffff;
+            --bg-code: #0f172a;
+            --accent-primary: #4f46e5;
+            --accent-secondary: #0284c7;
+            --accent-success: #059669;
+            --accent-warning: #d97706;
+            --accent-danger: #dc2626;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: #cbd5e1;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.65;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Floating Print Bar (Screen only) */
+        .print-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-print {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--accent-primary);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 0.6rem 1.25rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-print:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        /* Hero Header */
+        header {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, #e0e7ff 0%, #e0f2fe 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent-primary);
+            background: #ffffff;
+            border: 1px solid #c7d2fe;
+            border-radius: 9999px;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.3rem;
+            font-weight: 800;
+            color: #1e1b4b;
+            margin-bottom: 0.75rem;
+            line-height: 1.25;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 850px;
+            margin: 0 auto;
+            font-weight: 450;
+        }
+
+        /* Section Cards */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.75rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .icon {
+            font-size: 1.5rem;
+        }
+
+        /* Diagram Section & High Definition Light Mode Diagram Boxes */
+        .diagram-card {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.85rem;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--shadow);
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .diagram-container {
+            background-color: #ffffff !important;
+            border: 2px solid #cbd5e1 !important;
+            border-radius: 0.85rem;
+            padding: 2.5rem 1.5rem !important;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: auto;
+            min-height: 350px;
+            margin-top: 1.25rem;
+        }
+
+        .diagram-container pre.mermaid,
+        .diagram-container .mermaid {
+            background-color: #ffffff !important;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .diagram-container svg {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            min-height: 280px !important;
+            font-size: 17px !important;
+            background-color: #ffffff !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        /* Force Light Mode Nodes & Lines */
+        .diagram-container .node rect,
+        .diagram-container .node circle,
+        .diagram-container .node polygon,
+        .diagram-container g.node rect,
+        .diagram-container g.node polygon {
+            fill: #f8fafc !important;
+            stroke: #4f46e5 !important;
+            stroke-width: 2.5px !important;
+            filter: drop-shadow(0px 4px 6px rgba(79, 70, 229, 0.12));
+        }
+
+        .diagram-container .node .label,
+        .diagram-container .node label,
+        .diagram-container .node text,
+        .diagram-container .node tspan,
+        .diagram-container g.node text,
+        .diagram-container g.node tspan {
+            fill: #0f172a !important;
+            color: #0f172a !important;
+            font-size: 17px !important;
+            font-weight: 700 !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        .diagram-container .edgePath .path {
+            stroke: #4f46e5 !important;
+            stroke-width: 3px !important;
+        }
+
+        .diagram-container .marker,
+        .diagram-container marker path {
+            fill: #4f46e5 !important;
+            stroke: #4f46e5 !important;
+        }
+
+        .diagram-container .edgeLabel,
+        .diagram-container .edgeLabel rect,
+        .diagram-container .edgeLabel span {
+            background-color: #ffffff !important;
+            fill: #1e1b4b !important;
+            color: #1e1b4b !important;
+            font-size: 15px !important;
+            font-weight: 600 !important;
+            border-radius: 6px;
+            padding: 4px 8px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        th, td {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        /* Code Blocks */
+        pre {
+            background-color: var(--bg-code);
+            border: 1px solid #334155;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #f8fafc;
+            line-height: 1.5;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: #e2e8f0;
+            color: #0f172a;
+            padding: 0.15rem 0.35rem;
+            border-radius: 0.25rem;
+            font-size: 0.875em;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        .code-keyword { color: #c678dd; font-weight: 600; }
+        .code-string { color: #98c379; }
+        .code-comment { color: #7f848e; font-style: italic; }
+        .code-function { color: #61afef; }
+
+        /* Status Pills */
+        .pill {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.775rem;
+            font-weight: 700;
+        }
+
+        .pill-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .pill-success { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+
+        /* Lists */
+        ol, ul {
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: #334155;
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2.5rem;
+        }
+
+        /* ==========================================================================
+           A4 PRINT STYLESHEET (@media print)
+           ========================================================================== */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 12mm 12mm 12mm 12mm;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                font-size: 10pt !important;
+                line-height: 1.4 !important;
+            }
+
+            .container {
+                max-width: 100% !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .no-print, .print-bar {
+                display: none !important;
+            }
+
+            header {
+                padding: 1.5rem 1rem !important;
+                background: #f1f5f9 !important;
+                border: 1px solid #cbd5e1 !important;
+                margin-bottom: 1.25rem !important;
+                box-shadow: none !important;
+                border-radius: 0.5rem !important;
+                page-break-after: avoid;
+            }
+
+            h1 {
+                font-size: 1.8rem !important;
+                color: #0f172a !important;
+            }
+
+            .subtitle {
+                font-size: 10pt !important;
+                color: #334155 !important;
+            }
+
+            .card, .diagram-card {
+                background: #ffffff !important;
+                border: 1px solid #94a3b8 !important;
+                box-shadow: none !important;
+                padding: 1rem !important;
+                margin-bottom: 1.25rem !important;
+                border-radius: 0.5rem !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .card-title {
+                font-size: 1.1rem !important;
+            }
+
+            .diagram-container {
+                min-height: 280px !important;
+                padding: 1rem 0.5rem !important;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+            }
+
+            .diagram-container svg {
+                max-width: 100% !important;
+                height: auto !important;
+                min-height: 240px !important;
+                font-size: 13px !important;
+            }
+
+            table {
+                font-size: 9pt !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            th, td {
+                padding: 0.5rem 0.6rem !important;
+            }
+
+            pre {
+                background-color: #0f172a !important;
+                color: #f8fafc !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                white-space: pre-wrap !important;
+                word-break: break-all !important;
+                font-size: 8.5pt !important;
+                padding: 0.8rem !important;
+            }
+
+            li {
+                font-size: 9.5pt !important;
+                margin-bottom: 0.3rem !important;
+            }
+
+            footer {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- Print / PDF Action Bar -->
+        <div class="print-bar no-print">
+            <button class="btn-print" onclick="window.print()">
+                <span>🖨️</span> Print / Save as A4 PDF
+            </button>
+        </div>
+
+        <!-- Header -->
+        <header>
+            <span class="badge">Architecture Migration Guide</span>
+            <h1>Replacing XAMPP / Apache with Nginx</h1>
+            <p class="subtitle">A complete technical guide to building a crash-resilient, production-ready stack for React, Node.js, and Native MariaDB on Windows.</p>
+        </header>
+
+        <!-- Executive Summary -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">⚡</span>
+                <h2 class="card-title">Why Make This Migration?</h2>
+            </div>
+            <p>Your team experienced crashes because <strong>XAMPP's Apache web server</strong> was built for PHP (LAMP/WAMP stack) using heavy process-per-request threads (<code>mod_proxy</code>). Under high traffic or concurrent API calls from React, Apache exhausts system memory and crashes the entire XAMPP control panel, taking down your database.</p>
+            <p style="margin-top: 0.75rem;">By migrating to <strong>Nginx + Native MariaDB</strong>:
+                <ul>
+                    <li><strong>Nginx</strong> handles 10,000+ concurrent requests using only <strong>~15MB of RAM</strong>.</li>
+                    <li><strong>React static assets</strong> are served directly from disk at maximum speed.</li>
+                    <li><strong>Native MariaDB</strong> runs as an isolated Windows Service that never restarts when web servers change.</li>
+                </ul>
+            </p>
+        </div>
+
+        <!-- Section: Architecture Comparison -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">📐</span>
+                <h2 class="card-title">Architecture Comparison</h2>
+            </div>
+            <p style="color: var(--text-muted); margin-bottom: 1.25rem;">Below are the full-scale, high-visibility architecture diagrams showing the transformation from XAMPP to Nginx.</p>
+
+            <!-- Old Architecture Diagram Box -->
+            <div class="diagram-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h3 style="color: var(--accent-danger); font-size: 1.15rem; font-weight: 700;">1. Old Architecture (XAMPP / Apache)</h3>
+                    <span class="pill pill-danger">Fragile & Heavy</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--text-muted);">Bundled monolith control panel. Apache uses heavy OS processes per connection causing frequent memory crashes.</p>
+                
+                <div class="diagram-container">
+                    <pre class="mermaid">
+graph LR
+    Client["Client Browser"] --> XAMPP["XAMPP Control Panel Monolith"]
+    
+    subgraph XAMPP["XAMPP Monolith (Frequent Crashes)"]
+        Apache["Apache Web Server (Heavy Thread Model)"]
+        OldDB["Bundled MySQL/MariaDB (Crashes with XAMPP)"]
+    end
+
+    Apache -->|"Proxy via mod_proxy"| NodeApp["Node.js Backend (Port 3000)"]
+    Apache -->|"Serves Build"| ReactApp["React Build Files"]
+    NodeApp --> OldDB
+                    </pre>
+                </div>
+            </div>
+
+            <!-- New Architecture Diagram Box -->
+            <div class="diagram-card" style="border-color: #86efac;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h3 style="color: var(--accent-success); font-size: 1.15rem; font-weight: 700;">2. New Architecture (Nginx + Native Stack)</h3>
+                    <span class="pill pill-success">Production Grade & Stable</span>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--text-muted);">Decoupled, high-performance event loop. Nginx serves React static files directly from disk and proxies API requests to Node.js.</p>
+                
+                <div class="diagram-container">
+                    <pre class="mermaid">
+graph LR
+    Client["Client Browser (Port 80 / 443)"] --> Nginx["Nginx Reverse Proxy (Port 80)"]
+    
+    Nginx -->|"/ (Direct Disk Serve)"| ReactBuild["React Built Static Files (dist / build)"]
+    Nginx -->|"/api/* (Proxy Pass)"| NodeApp["Node.js Backend Server (Port 3000)"]
+    
+    NodeApp --> NativeDB[("Native MariaDB Service (Windows Service)")]
+                    </pre>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">📊</span>
+                <h2 class="card-title">Feature Comparison Matrix</h2>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature / Metric</th>
+                        <th>XAMPP (Apache)</th>
+                        <th>Nginx + Native Stack</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Architecture Model</strong></td>
+                        <td>Process/Thread-per-request (Heavy)</td>
+                        <td>Asynchronous Event Loop (Lightweight)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>RAM Usage</strong></td>
+                        <td>200 MB – 500 MB+</td>
+                        <td>~15 MB – 30 MB</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Stability & Reliability</strong></td>
+                        <td>Frequent crashes under API load</td>
+                        <td>Rock-solid (99.99% uptime)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>React Router Support</strong></td>
+                        <td>Requires complex <code>.htaccess</code> rewrites</td>
+                        <td>Native <code>try_files $uri $uri/ /index.html;</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Database Isolation</strong></td>
+                        <td>Tied to XAMPP control panel restarts</td>
+                        <td>Independent, native Windows Service</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Nginx Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">⚙️</span>
+                <h2 class="card-title">Production Nginx Configuration (nginx.conf)</h2>
+            </div>
+            <p style="margin-bottom: 0.75rem; color: var(--text-muted);">File Location: <code>C:\nginx\nginx-1.30.4\conf\nginx.conf</code></p>
+            <pre>
+<span class="code-keyword">server</span> {
+    <span class="code-keyword">listen</span>       80;
+    <span class="code-keyword">server_name</span>  localhost;
+
+    <span class="code-comment"># Enable Gzip Compression for fast React asset loading</span>
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript;
+
+    <span class="code-comment"># ----------------------------------------------------
+    # 1. REACT FRONTEND (Direct Static File Serving)
+    # ----------------------------------------------------</span>
+    <span class="code-keyword">location</span> / {
+        <span class="code-keyword">root</span>   <span class="code-string">"C:/path/to/your/react-app/dist"</span>;
+        <span class="code-keyword">index</span>  index.html index.htm;
+        
+        <span class="code-comment"># Fixes React Router SPA 404 error on page refresh</span>
+        <span class="code-keyword">try_files</span> $uri $uri/ /index.html;
+    }
+
+    <span class="code-comment"># Cache Static Assets (JS, CSS, Images)</span>
+    <span class="code-keyword">location</span> /assets/ {
+        <span class="code-keyword">root</span> <span class="code-string">"C:/path/to/your/react-app/dist"</span>;
+        <span class="code-keyword">expires</span> 1y;
+        <span class="code-keyword">add_header</span> Cache-Control <span class="code-string">"public, no-transform"</span>;
+    }
+
+    <span class="code-comment"># ----------------------------------------------------
+    # 2. NODE.JS BACKEND API PROXY
+    # ----------------------------------------------------</span>
+    <span class="code-keyword">location</span> /api/ {
+        <span class="code-keyword">proxy_pass</span>         http://127.0.0.1:3000/; <span class="code-comment"># Node.js Backend Port</span>
+        <span class="code-keyword">proxy_http_version</span> 1.1;
+        
+        <span class="code-keyword">proxy_set_header</span>   Host $host;
+        <span class="code-keyword">proxy_set_header</span>   X-Real-IP $remote_addr;
+        <span class="code-keyword">proxy_set_header</span>   X-Forwarded-For $proxy_add_x_forwarded_for;
+        <span class="code-keyword">proxy_set_header</span>   X-Forwarded-Proto $scheme;
+
+        <span class="code-comment"># WebSocket support</span>
+        <span class="code-keyword">proxy_set_header</span>   Upgrade $http_upgrade;
+        <span class="code-keyword">proxy_set_header</span>   Connection <span class="code-string">"upgrade"</span>;
+    }
+}
+            </pre>
+        </div>
+
+        <!-- Deployment Checklist -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">🚀</span>
+                <h2 class="card-title">Step-by-Step Setup Checklist</h2>
+            </div>
+            <ol>
+                <li><strong>Verify Native MariaDB</strong>: Ensure MariaDB is running as an automatic Windows Service (<code>Get-Service MariaDB*</code> in PowerShell).</li>
+                <li><strong>Build React Project</strong>: Run <code>npm run build</code> in your React project directory to generate the <code>dist/</code> folder.</li>
+                <li><strong>Update nginx.conf</strong>: Paste the configuration above into <code>C:\nginx\nginx-1.30.4\conf\nginx.conf</code> with your exact folder paths.</li>
+                <li><strong>Test Configuration Syntax</strong>:
+                    <pre>cd C:\nginx\nginx-1.30.4
+.\nginx.exe -t</pre>
+                </li>
+                <li><strong>Start Nginx</strong>:
+                    <pre>start nginx</pre>
+                </li>
+                <li><strong>Access Application</strong>: Open <code>http://localhost</code> in your browser!</li>
+            </ol>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>Nginx Migration Guide &bull; Generated for React, Node.js & Native MariaDB</p>
+        </footer>
+
+    </div>
+</body>
+</html>

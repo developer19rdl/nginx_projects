@@ -1,0 +1,22 @@
+.toolAddCardContainer {
+    border: 1px solid #DCDCDC;
+    border-radius: 5px;
+}
+
+.graphToolAddCardContainer {
+    border: 1px solid #DCDCDC;
+    border-radius: 5px;
+    margin-top: 25px;
+}
+
+.progressBarGridItem {
+    border: 1px solid #e2e2e2;
+    padding: 15px;
+    border-radius: 3px;
+    padding-bottom: 30px;
+}
+
+.progressBarHeader{
+    text-align: center;
+    color: #c5c7ca
+}

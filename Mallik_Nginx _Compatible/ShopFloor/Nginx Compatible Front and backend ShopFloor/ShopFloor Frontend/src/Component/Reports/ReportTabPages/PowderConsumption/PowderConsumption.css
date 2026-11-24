@@ -1,0 +1,58 @@
+.powder_bottomContainer {
+    /* border: 1px solid rgb(159, 159, 159); */
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+
+.powder_headerContainer {
+    background-color: #f7f7fc;
+    padding: 20px;
+    border-radius: 5px 5px 0 0;
+}
+
+.powder_datePicker {
+    /* width: 270px; */
+    height: 55px;
+    border-radius: 5px;
+    color: gray;
+    border: 1px solid #c2c2c2;
+    font-size: 18px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.powder_datePicker:hover {
+    border: 1px solid #000000;
+}
+
+.powder_from_date_Container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.powder_to_date_Container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.powder_from_date_header {
+    width: 130px;
+}
+
+.powder_bottm_date_containet {
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+.powder_button_container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}

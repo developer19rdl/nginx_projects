@@ -1,0 +1,53 @@
+/* Table Container */
+.table-container {
+  max-height: 200px; /* Adjust as needed */
+  overflow-y: scroll; /* Allow vertical scrolling */
+  width: 100%;
+  border: 1px solid #ddd;
+  /* Hide scrollbar for WebKit browsers */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer and Edge */
+}
+
+/* Hide scrollbar for WebKit browsers (Chrome, Safari) */
+.table-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Table Styling */
+#GuageTable {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 100px; /* Adjust as needed */
+  border-spacing: 0;
+  background-color: #EEEEEE;
+}
+
+/* Table Header */
+#GuageTable thead th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #000;
+  color: white;
+  position: sticky; /* Fixes header position */
+  top: 0;
+}
+
+/* Table Rows and Cells */
+#GuageTable td, #GuageTable th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+/* Alternating Row Color */
+#GuageTable tr:nth-child(even) {
+  background-color: #ffffff;
+}
+
+#GuageTable tr:hover {
+  background-color: #ddd;
+}
+
+/* ======================================================= */

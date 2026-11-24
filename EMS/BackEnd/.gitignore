@@ -1,0 +1,12 @@
+# Node modules directory
+/node_modules
+
+# Test JavaScript file
+/test.js
+
+# Log files
+/error.log
+/combined.log
+
+# Public folder file
+/app/public/mac_address.txt

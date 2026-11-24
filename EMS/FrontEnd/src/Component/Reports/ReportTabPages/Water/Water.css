@@ -1,0 +1,46 @@
+.water_bottomContainer {
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+
+.water_headerContainer {
+    background-color: #f7f7fc;
+    padding: 20px;
+    border-radius: 5px 5px 0 0;
+}
+
+.water_filters_container {
+    padding: 25px 20px;
+}
+
+.water_kpi_row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 0 20px 20px 20px;
+}
+
+.water_kpi_card {
+    flex: 1;
+    min-width: 160px;
+    border-radius: 8px;
+    padding: 14px 16px;
+    background-color: #e3f2fd;
+    border: 1px solid #90caf9;
+}
+
+.water_kpi_label {
+    font-size: 12px;
+    color: #0d47a1;
+    opacity: 0.8;
+}
+
+.water_kpi_value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0d47a1;
+}
+
+.water_chartContainer {
+    padding: 10px 25px 25px 25px;
+}

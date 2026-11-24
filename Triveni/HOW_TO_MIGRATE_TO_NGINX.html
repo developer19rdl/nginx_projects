@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Triveni MES — Pre-Nginx to Nginx Transformation & Migration Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', Consolas, "Courier New", monospace;
+      
+      /* Dark Theme (Default) */
+      --bg-body: #0a0e17;
+      --bg-surface: #111827;
+      --bg-card: #1a2234;
+      --bg-subtle: #232d42;
+      --border-color: #2b384e;
+      --border-focus: #3b82f6;
+      
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-subtle: #6b7280;
+      
+      --accent-primary: #3b82f6;
+      --accent-primary-hover: #2563eb;
+      --accent-cyan: #06b6d4;
+      --accent-success: #10b981;
+      --accent-warning: #f59e0b;
+      --accent-danger: #ef4444;
+      --accent-purple: #8b5cf6;
+      
+      --diff-add-bg: rgba(16, 185, 129, 0.14);
+      --diff-add-border: rgba(16, 185, 129, 0.35);
+      --diff-add-text: #34d399;
+      --diff-del-bg: rgba(239, 68, 68, 0.14);
+      --diff-del-border: rgba(239, 68, 68, 0.35);
+      --diff-del-text: #f87171;
+      
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 8px -2px rgba(0,0,0,0.4);
+      --shadow-lg: 0 12px 24px -4px rgba(0,0,0,0.5);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+    }
+
+    [data-theme="light"] {
+      --bg-body: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-card: #f1f5f9;
+      --bg-subtle: #e2e8f0;
+      --border-color: #cbd5e1;
+      --border-focus: #2563eb;
+      
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-subtle: #94a3b8;
+      
+      --diff-add-bg: #dcfce7;
+      --diff-add-border: #86efac;
+      --diff-add-text: #166534;
+      --diff-del-bg: #fee2e2;
+      --diff-del-border: #fca5a5;
+      --diff-del-text: #991b1b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      line-height: 1.6;
+      font-size: 14.5px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Header Nav */
+    .nav-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(17, 24, 39, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 2.5rem;
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+    .badge-pill {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan));
+      color: #fff;
+      padding: 0.2rem 0.65rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.45rem 0.95rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn:hover {
+      background: var(--bg-subtle);
+      border-color: var(--border-focus);
+    }
+    .btn-primary {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--accent-primary-hover);
+    }
+
+    /* Container */
+    .main-container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(17, 24, 39, 0.7) 100%);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.6rem;
+      background: linear-gradient(135deg, #ffffff 40%, #93c5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 950px;
+      line-height: 1.6;
+      margin-bottom: 1.75rem;
+    }
+    .path-mapping {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.85rem;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+    }
+    .path-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 0.3rem 0.7rem;
+      border-radius: var(--radius-sm);
+      color: #38bdf8;
+    }
+    .path-arrow {
+      color: var(--accent-warning);
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-primary);
+    }
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .stat-lbl {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Section */
+    .section-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2.25rem;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .section-title {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Architecture Visual Comparison */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    @media (max-width: 900px) {
+      .arch-grid { grid-template-columns: 1fr; }
+    }
+    .arch-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+    }
+    .arch-panel.before { border-top: 4px solid var(--accent-danger); }
+    .arch-panel.after { border-top: 4px solid var(--accent-success); }
+    .arch-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .arch-ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      font-size: 0.92rem;
+    }
+    .arch-li {
+      display: flex;
+      gap: 0.6rem;
+      color: var(--text-muted);
+    }
+    .arch-li strong { color: var(--text-main); }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      margin: 1.25rem 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+    th {
+      background: var(--bg-card);
+      padding: 0.85rem 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+    }
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    /* File Diff Card */
+    .diff-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      margin-bottom: 1.75rem;
+      overflow: hidden;
+    }
+    .diff-card-header {
+      background: var(--bg-subtle);
+      padding: 0.9rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .diff-card-title {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .pill-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+    }
+    .pill-backend { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; }
+    .pill-frontend { background: rgba(6, 182, 212, 0.2); color: #67e8f9; }
+    .pill-operator { background: rgba(249, 115, 22, 0.2); color: #fdba74; }
+    .pill-nginx { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+
+    .diff-desc {
+      padding: 1rem 1.25rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.15);
+    }
+    .diff-code {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      background: #090d16;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+    .diff-row {
+      display: flex;
+      padding: 0 0.5rem;
+      min-width: max-content;
+    }
+    .diff-ln {
+      width: 40px;
+      flex-shrink: 0;
+      text-align: right;
+      padding-right: 0.75rem;
+      color: #4b5563;
+      user-select: none;
+    }
+    .diff-sign {
+      width: 20px;
+      flex-shrink: 0;
+      text-align: center;
+      user-select: none;
+      font-weight: bold;
+    }
+    .diff-txt {
+      flex: 1;
+      white-space: pre;
+      padding-right: 1rem;
+    }
+    .row-add {
+      background-color: var(--diff-add-bg);
+      color: var(--diff-add-text);
+    }
+    .row-add .diff-sign { color: var(--accent-success); }
+    .row-del {
+      background-color: var(--diff-del-bg);
+      color: var(--diff-del-text);
+    }
+    .row-del .diff-sign { color: var(--accent-danger); }
+
+    /* Terminal / Script Box */
+    .terminal-box {
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #38bdf8;
+      overflow-x: auto;
+      margin: 1rem 0;
+      line-height: 1.6;
+    }
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #1e293b;
+      color: #94a3b8;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    /* Step Process Card */
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .step-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      position: relative;
+    }
+    .step-num-badge {
+      position: absolute;
+      top: -12px;
+      left: 1.5rem;
+      background: var(--accent-primary);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.75rem;
+      border-radius: 999px;
+      box-shadow: var(--shadow-sm);
+    }
+    .step-h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-top: 0.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-main);
+    }
+    .step-p {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Print */
+    @media print {
+      .nav-bar { display: none; }
+      body { background: #fff; color: #000; }
+      .section-card, .diff-card, .stat-card { border: 1px solid #ccc; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <header class="nav-bar">
+    <div class="nav-brand">
+      <span>Triveni MES</span>
+      <span class="badge-pill">Nginx Migration Playbook</span>
+    </div>
+    <div class="nav-actions">
+      <button class="btn" onclick="toggleTheme()" id="themeBtn">☀️ Light Mode</button>
+      <button class="btn" onclick="window.print()">🖨️ Print Guide</button>
+      <a class="btn btn-primary" href="./TRIVENI_NGINX_MIGRATION_REPORT.html" target="_blank">Full 500KB Report ↗</a>
+    </div>
+  </header>
+
+  <main class="main-container">
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1 class="hero-title">Codebase Transformation & Migration Guide</h1>
+      <p class="hero-subtitle">
+        Step-by-step technical breakdown of all architectural, configuration, and source-code modifications required to transform the original multi-port development codebase into the unified, production-ready Nginx reverse-proxy system.
+      </p>
+      <div class="path-mapping">
+        <span>Source (Original):</span>
+        <span class="path-box">C:\Developer_19_Projects\Nginx demo\Triveni\Original before nginx implement codebase</span>
+        <span class="path-arrow">➜ ➜ ➜</span>
+        <span>Target (Nginx Architecture):</span>
+        <span class="path-box">C:\Developer_19_Projects\Nginx demo\Triveni</span>
+      </div>
+    </div>
+
+    <!-- Metrics Summary -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-num">10</div>
+        <div class="stat-lbl">Source Files Modified</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">8</div>
+        <div class="stat-lbl">New Infrastructure Files Added</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">Port 80</div>
+        <div class="stat-lbl">Single Unified Network Entrypoint</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">0 ms</div>
+        <div class="stat-lbl">CORS Overhead on WebSockets & API</div>
+      </div>
+    </div>
+
+    <!-- Architecture Comparison -->
+    <section class="section-card">
+      <div class="section-header">
+        <h2 class="section-title">🏛️ Architecture Comparison: Before vs After</h2>
+      </div>
+
+      <div class="arch-grid">
+        <div class="arch-panel before">
+          <div class="arch-title">
+            <span>❌ Before (Original Codebase)</span>
+            <span style="color: var(--accent-danger); font-size: 0.85rem; font-weight: 700;">Multi-Port Dev Mode</span>
+          </div>
+          <ul class="arch-ul">
+            <li class="arch-li">
+              <span>⚠️</span>
+              <div><strong>3 Separate Node/Vite Processes:</strong> Admin UI ran on <code>:5173</code>, Operator UI on <code>:5180</code>, and Backend API on <code>:5050</code>.</div>
+            </li>
+            <li class="arch-li">
+              <span>⚠️</span>
+              <div><strong>Vite Dev Proxy:</strong> Relied on Vite's internal node HTTP proxy to route <code>/api</code> and <code>/socket.io</code> to backend port 5050.</div>
+            </li>
+            <li class="arch-li">
+              <span>⚠️</span>
+              <div><strong>CORS Vulnerabilities & Port Blocks:</strong> Shop-floor tablets accessing port 5180 or 5050 over LAN encountered firewall rejections and CORS mismatches.</div>
+            </li>
+            <li class="arch-li">
+              <span>⚠️</span>
+              <div><strong>Uncompiled Assets:</strong> Ran Node dev servers in open cmd prompts without native Windows background daemonization.</div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="arch-panel after">
+          <div class="arch-title">
+            <span>✅ After (Nginx Production Deployment)</span>
+            <span style="color: var(--accent-success); font-size: 0.85rem; font-weight: 700;">Single-Port Nginx Architecture</span>
+          </div>
+          <ul class="arch-ul">
+            <li class="arch-li">
+              <span>🚀</span>
+              <div><strong>Unified Standard Port 80:</strong> Single IP entry point for all office desktops, tablets, and kiosks.</div>
+            </li>
+            <li class="arch-li">
+              <span>🚀</span>
+              <div><strong>Static Pre-Built SPAs:</strong> Both apps compiled to high-speed static assets in <code>frontend/dist</code> and <code>operator/dist</code>.</div>
+            </li>
+            <li class="arch-li">
+              <span>🚀</span>
+              <div><strong>Zero-CORS Same-Origin Routing:</strong> <code>/api/</code> and <code>/socket.io/</code> reverse-proxied internally to backend upstream <code>127.0.0.1:5050</code>.</div>
+            </li>
+            <li class="arch-li">
+              <span>🚀</span>
+              <div><strong>Single Standalone Backend Executable:</strong> Packaged Node binary (<code>triveni-backend.exe</code>) with automatic service recovery via NSSM.</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Unified Routing Table -->
+      <h3 style="margin-top: 1.75rem; margin-bottom: 0.75rem; font-size: 1.1rem; font-weight: 700;">🌐 Unified Production URL Routing Matrix</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Client URL</th>
+              <th>Routed By</th>
+              <th>Destination / Internal Target</th>
+              <th>Function / Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>http://&lt;server-ip&gt;/</code></td>
+              <td>Nginx (Static Root)</td>
+              <td><code>frontend/dist/index.html</code></td>
+              <td>Planning, Quality, Dashboard & Inventory Portal</td>
+            </tr>
+            <tr>
+              <td><code>http://&lt;server-ip&gt;/operator/</code></td>
+              <td>Nginx (Alias)</td>
+              <td><code>operator/dist/index.html</code></td>
+              <td>Shop-floor Touchscreen / Tablet Operator Interface</td>
+            </tr>
+            <tr>
+              <td><code>http://&lt;server-ip&gt;/api/v1/...</code></td>
+              <td>Nginx (Reverse Proxy)</td>
+              <td><code>http://127.0.0.1:5050/api/v1/...</code></td>
+              <td>Express REST API, Business Logic, MariaDB transactions</td>
+            </tr>
+            <tr>
+              <td><code>http://&lt;server-ip&gt;/socket.io/...</code></td>
+              <td>Nginx (WS Upgrade)</td>
+              <td><code>ws://127.0.0.1:5050/socket.io/...</code></td>
+              <td>Live production ticks, machine timers & MQTT broadcasts</td>
+            </tr>
+            <tr>
+              <td><code>http://&lt;server-ip&gt;/uploads/...</code></td>
+              <td>Nginx (Reverse Proxy)</td>
+              <td><code>http://127.0.0.1:5050/uploads/...</code></td>
+              <td>Quality inspection certificates & photo attachments</td>
+            </tr>
+            <tr>
+              <td><code>http://&lt;server-ip&gt;/health</code></td>
+              <td>Nginx (Reverse Proxy)</td>
+              <td><code>http://127.0.0.1:5050/health</code></td>
+              <td>Server uptime & health monitoring heartbeat</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Step by Step Playbook -->
+    <section class="section-card">
+      <div class="section-header">
+        <h2 class="section-title">📋 Step-by-Step Implementation Playbook</h2>
+      </div>
+
+      <div class="step-list">
+        
+        <!-- Step 1 -->
+        <div class="step-item">
+          <div class="step-num-badge">STEP 1</div>
+          <h3 class="step-h3">Frontend: Subpath Routing & Base URL Configuration</h3>
+          <p class="step-p">
+            Because both applications are hosted on the same domain and port (<code>/</code> for Admin, <code>/operator/</code> for Floor Operator), Vite and React Router must be configured to respect their root subpaths during bundle creation and history navigation.
+          </p>
+          <ul style="margin-left: 1.5rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.7;">
+            <li>In <code>frontend/vite.config.js</code>: Add <code>base: env.VITE_BASE_PATH || '/'</code>.</li>
+            <li>In <code>frontend/src/App.jsx</code>: Pass <code>basename={import.meta.env.BASE_URL}</code> to <code>&lt;BrowserRouter&gt;</code>.</li>
+            <li>In <code>frontend/src/api/axiosClient.js</code>: Update 401 unauthenticated redirect to <code>${import.meta.env.BASE_URL || '/'}login</code>.</li>
+            <li>In <code>operator/vite.config.js</code>: Set <code>base: env.VITE_BASE_PATH || '/operator/'</code>.</li>
+            <li>In <code>operator/src/App.jsx</code>: Pass <code>basename={import.meta.env.BASE_URL}</code> to <code>&lt;BrowserRouter&gt;</code>.</li>
+            <li>In <code>operator/src/api/axiosClient.js</code>: Update 401 unauthenticated redirect to <code>${import.meta.env.BASE_URL || '/'}login</code>.</li>
+          </ul>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-item">
+          <div class="step-num-badge">STEP 2</div>
+          <h3 class="step-h3">Backend: Standalone Executable Packaging & Dynamic CORS</h3>
+          <p class="step-p">
+            Configure the Node.js backend so it can run as an independent Windows <code>.exe</code> without requiring Node.js to be installed on target factory host machines, and ensure multi-IP LAN access works cleanly.
+          </p>
+          <ul style="margin-left: 1.5rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.7;">
+            <li>In <code>backend/package.json</code>: Install <code>@yao-pkg/pkg</code> and configure the binary build target <code>node20-win-x64</code>.</li>
+            <li>In <code>backend/src/server.js</code>: Synchronize working directory when packaged (<code>process.chdir(path.dirname(process.execPath))</code>).</li>
+            <li>In <code>backend/src/config/env.js</code>: Add <code>parseCorsOrigin()</code> to parse comma-delimited origins, and detect <code>.env</code> next to <code>.exe</code>.</li>
+            <li>In <code>backend/.env</code>: Add host LAN IPs to <code>CORS_ORIGIN</code> (e.g., <code>http://localhost,http://192.168.1.20,http://192.168.8.8</code>).</li>
+          </ul>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-item">
+          <div class="step-num-badge">STEP 3</div>
+          <h3 class="step-h3">Compile Production Bundles</h3>
+          <p class="step-p">
+            Build the static client bundles and the packaged backend binary. Run the following commands:
+          </p>
+          <div class="terminal-box">
+            <div class="terminal-header"><span>PowerShell Compilation Commands</span><span>Terminal</span></div>
+# 1. Build Admin Frontend
+cd "C:\Developer_19_Projects\Nginx demo\Triveni\frontend"
+npm install
+npm run build
+# Output generated in: frontend/dist/
+
+# 2. Build Operator Frontend
+cd "C:\Developer_19_Projects\Nginx demo\Triveni\operator"
+npm install
+npm run build
+# Output generated in: operator/dist/
+
+# 3. Package Backend Executable (Optional / Recommended)
+cd "C:\Developer_19_Projects\Nginx demo\Triveni\backend"
+npm install
+npm run build:exe
+# Output generated in: backend/dist/triveni-backend.exe
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step-item">
+          <div class="step-num-badge">STEP 4</div>
+          <h3 class="step-h3">Deploy Nginx Configuration (nginx.conf)</h3>
+          <p class="step-p">
+            Create <code>nginx.conf</code> in the root directory. Configure <code>upstream triveni_backend { server 127.0.0.1:5050; }</code>, route <code>/</code> to <code>frontend/dist</code>, route <code>/operator/</code> to <code>operator/dist</code>, and reverse proxy <code>/api/</code> and <code>/socket.io/</code> with WebSocket header upgrade flags.
+          </p>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="step-item">
+          <div class="step-num-badge">STEP 5</div>
+          <h3 class="step-h3">Setup Startup Automation & Windows Services</h3>
+          <p class="step-p">
+            Create helper batch scripts for one-click operations:
+          </p>
+          <ul style="margin-left: 1.5rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.7;">
+            <li><code>start-backend.bat</code>: Runs <code>triveni-backend.exe</code> if present, or falls back to <code>node src/server.js</code>.</li>
+            <li><code>start-nginx.bat</code>: Launches the Nginx Windows background service.</li>
+            <li><code>stop-nginx.bat</code> & <code>reload-nginx.bat</code>: Graceful stop and hot reload.</li>
+            <li><code>DEPLOYMENT_GUIDE_NSSM.txt</code>: Configures NSSM (Non-Sucking Service Manager) for auto-start on Windows reboot.</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Code Diffs Section -->
+    <section class="section-card">
+      <div class="section-header">
+        <h2 class="section-title">🔍 Exact Code Diffs (All 10 Modified Files)</h2>
+      </div>
+
+      <!-- File 1: backend/src/server.js -->
+      <div class="diff-card">
+        <div class="diff-card-header">
+          <div class="diff-card-title">
+            <span>📄 backend/src/server.js</span>
+            <span class="pill-tag pill-backend">Backend Core</span>
+          </div>
+          <div><span style="color: var(--accent-success); font-weight: bold;">+7 lines added</span></div>
+        </div>
+        <div class="diff-desc">
+          <strong>Why this change:</strong> When Node.js is compiled into a standalone <code>.exe</code> using <code>pkg</code>, the runtime current working directory can default to the user profile or system32. Adding this synchronization guarantees that relative paths (such as <code>uploads/</code> and <code>logs/</code>) are resolved next to the executable itself.
+        </div>
+        <div class="diff-code">
+          <div class="diff-row row-add"><div class="diff-ln">1</div><div class="diff-sign">+</div><div class="diff-txt">const path = require('path');</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">2</div><div class="diff-sign">+</div><div class="diff-txt"></div></div>
+          <div class="diff-row row-add"><div class="diff-ln">3</div><div class="diff-sign">+</div><div class="diff-txt">// When running as a packaged standalone executable, synchronize working directory</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">4</div><div class="diff-sign">+</div><div class="diff-txt">// to the folder containing the .exe so uploads and logs are created next to the executable.</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">5</div><div class="diff-sign">+</div><div class="diff-txt">if (process.pkg) {</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">6</div><div class="diff-sign">+</div><div class="diff-txt">  process.chdir(path.dirname(process.execPath));</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">7</div><div class="diff-sign">+</div><div class="diff-txt">}</div></div>
+          <div class="diff-row"><div class="diff-ln">8</div><div class="diff-sign"> </div><div class="diff-txt">const app = require('./app');</div></div>
+          <div class="diff-row"><div class="diff-ln">9</div><div class="diff-sign"> </div><div class="diff-txt">const env = require('./config/env');</div></div>
+        </div>
+      </div>
+
+      <!-- File 2: backend/src/config/env.js -->
+      <div class="diff-card">
+        <div class="diff-card-header">
+          <div class="diff-card-title">
+            <span>📄 backend/src/config/env.js</span>
+            <span class="pill-tag pill-backend">Config</span>
+          </div>
+          <div><span style="color: var(--accent-success); font-weight: bold;">+21 lines added</span></div>
+        </div>
+        <div class="diff-desc">
+          <strong>Why this change:</strong> Allows loading <code>.env</code> file placed next to <code>triveni-backend.exe</code>, and adds <code>parseCorsOrigin()</code> so that <code>CORS_ORIGIN</code> can be a comma-separated list of multiple LAN IP addresses or hostnames.
+        </div>
+        <div class="diff-code">
+          <div class="diff-row row-add"><div class="diff-ln">1</div><div class="diff-sign">+</div><div class="diff-txt">const path = require('path');</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">2</div><div class="diff-sign">+</div><div class="diff-txt">const fs = require('fs');</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">3</div><div class="diff-sign">+</div><div class="diff-txt"></div></div>
+          <div class="diff-row row-add"><div class="diff-ln">4</div><div class="diff-sign">+</div><div class="diff-txt">// In packaged executable mode (process.pkg), load .env located next to the .exe.</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">5</div><div class="diff-sign">+</div><div class="diff-txt">const appRoot = process.pkg ? path.dirname(process.execPath) : process.cwd();</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">6</div><div class="diff-sign">+</div><div class="diff-txt">const envPath = path.join(appRoot, '.env');</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">7</div><div class="diff-sign">+</div><div class="diff-txt">if (fs.existsSync(envPath)) { require('dotenv').config({ path: envPath }); } else { require('dotenv').config(); }</div></div>
+          <div class="diff-row"><div class="diff-ln">8</div><div class="diff-sign"> </div><div class="diff-txt">...</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">29</div><div class="diff-sign">+</div><div class="diff-txt">function parseCorsOrigin(value) {</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">30</div><div class="diff-sign">+</div><div class="diff-txt">  const trimmed = (value || '').trim();</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">31</div><div class="diff-sign">+</div><div class="diff-txt">  if (!trimmed || trimmed === '*') return '*';</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">32</div><div class="diff-sign">+</div><div class="diff-txt">  if (trimmed.includes(',')) return trimmed.split(',').map((s) => s.trim()).filter(Boolean);</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">33</div><div class="diff-sign">+</div><div class="diff-txt">  return trimmed;</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">34</div><div class="diff-sign">+</div><div class="diff-txt">}</div></div>
+          <div class="diff-row"><div class="diff-ln">35</div><div class="diff-sign"> </div><div class="diff-txt">...</div></div>
+          <div class="diff-row row-del"><div class="diff-ln">42</div><div class="diff-sign">-</div><div class="diff-txt">  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">42</div><div class="diff-sign">+</div><div class="diff-txt">  corsOrigin: parseCorsOrigin(process.env.CORS_ORIGIN || 'http://localhost:5173'),</div></div>
+        </div>
+      </div>
+
+      <!-- File 3: backend/package.json -->
+      <div class="diff-card">
+        <div class="diff-card-header">
+          <div class="diff-card-title">
+            <span>📄 backend/package.json</span>
+            <span class="pill-tag pill-backend">Packaging</span>
+          </div>
+          <div><span style="color: var(--accent-success); font-weight: bold;">Modified scripts & devDependencies</span></div>
+        </div>
+        <div class="diff-desc">
+          <strong>Why this change:</strong> Adds <code>@yao-pkg/pkg</code> and the <code>build:exe</code> command to bundle Express, routes, and SQL migration assets into a standalone binary.
+        </div>
+        <div class="diff-code">
+          <div class="diff-row row-add"><div class="diff-ln">12</div><div class="diff-sign">+</div><div class="diff-txt">    "build:exe": "node --experimental-require-module ./node_modules/@yao-pkg/pkg/lib-es5/bin.js . --targets node20-win-x64 --output dist/triveni-backend.exe"</div></div>
+          <div class="diff-row"><div class="diff-ln">13</div><div class="diff-sign"> </div><div class="diff-txt">  },</div></div>
+          <div class="diff-row"><div class="diff-ln">35</div><div class="diff-sign"> </div><div class="diff-txt">  "devDependencies": {</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">36</div><div class="diff-sign">+</div><div class="diff-txt">    "@yao-pkg/pkg": "^6.14.2",</div></div>
+          <div class="diff-row"><div class="diff-ln">37</div><div class="diff-sign"> </div><div class="diff-txt">    "nodemon": "^3.1.0"</div></div>
+          <div class="diff-row"><div class="diff-ln">38</div><div class="diff-sign"> </div><div class="diff-txt">  },</div></div>
+          <div class="diff-row"><div class="diff-ln">39</div><div class="diff-sign"> </div><div class="diff-txt">  "pkg": {</div></div>
+          <div class="diff-row row-del"><div class="diff-ln">40</div><div class="diff-sign">-</div><div class="diff-txt">    "scripts": [ "../node_modules/pdfkit/js/**/*.js" ],</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">40</div><div class="diff-sign">+</div><div class="diff-txt">    "scripts": [ "node_modules/pdfkit/js/**/*.js" ],</div></div>
+          <div class="diff-row row-del"><div class="diff-ln">43</div><div class="diff-sign">-</div><div class="diff-txt">    "assets": [ "./src/db/migrations/**/*" ]</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">43</div><div class="diff-sign">+</div><div class="diff-txt">    "assets": [ "src/db/migrations/**/*" ],</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">44</div><div class="diff-sign">+</div><div class="diff-txt">    "outputPath": "dist"</div></div>
+        </div>
+      </div>
+
+      <!-- File 4: backend/.env -->
+      <div class="diff-card">
+        <div class="diff-card-header">
+          <div class="diff-card-title">
+            <span>📄 backend/.env</span>
+            <span class="pill-tag pill-backend">Environment</span>
+          </div>
+          <div><span style="color: var(--accent-warning); font-weight: bold;">Updated CORS origin</span></div>
+        </div>
+        <div class="diff-desc">
+          <strong>Why this change:</strong> Expands CORS origin to accept standard HTTP port 80 and the plant's LAN IP addresses.
+        </div>
+        <div class="diff-code">
+          <div class="diff-row row-del"><div class="diff-ln">5</div><div class="diff-sign">-</div><div class="diff-txt">CORS_ORIGIN=http://localhost:5173</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">5</div><div class="diff-sign">+</div><div class="diff-txt">CORS_ORIGIN=http://localhost,http://localhost:5173,http://localhost:5180,http://127.0.0.1,http://192.168.1.20,http://192.168.8.8</div></div>
+        </div>
+      </div>
+
+      <!-- File 5: frontend/vite.config.js -->
+      <div class="diff-card">
+        <div class="diff-card-header">
+          <div class="diff-card-title">
+            <span>📄 frontend/vite.config.js</span>
+            <span class="pill-tag pill-frontend">Admin Frontend</span>
+          </div>
+          <div><span style="color: var(--accent-success); font-weight: bold;">+1 line added</span></div>
+        </div>
+        <div class="diff-desc">
+          <strong>Why this change:</strong> Configures Vite to generate assets with configurable base path support (defaulting to <code>/</code>).
+        </div>
+        <div class="diff-code">
+          <div class="diff-row"><div class="diff-ln">9</div><div class="diff-sign"> </div><div class="diff-txt">  return {</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">10</div><div class="diff-sign">+</div><div class="diff-txt">    base: env.VITE_BASE_PATH || '/',</div></div>
+          <div class="diff-row"><div class="diff-ln">11</div><div class="diff-sign"> </div><div class="diff-txt">    plugins: [react()],</div></div>
+        </div>
+      </div>
+
+      <!-- File 6: frontend/src/App.jsx -->
+      <div class="diff-card">
+        <div class="diff-card-header">
+          <div class="diff-card-title">
+            <span>📄 frontend/src/App.jsx</span>
+            <span class="pill-tag pill-frontend">Admin Routing</span>
+          </div>
+          <div><span style="color: var(--accent-success); font-weight: bold;">Modified Router</span></div>
+        </div>
+        <div class="diff-desc">
+          <strong>Why this change:</strong> Ties React Router navigation to Vite's <code>import.meta.env.BASE_URL</code> so routes adapt if deployed under a subpath.
+        </div>
+        <div class="diff-code">
+          <div class="diff-row row-del"><div class="diff-ln">25</div><div class="diff-sign">-</div><div class="diff-txt">        &lt;BrowserRouter&gt;</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">25</div><div class="diff-sign">+</div><div class="diff-txt">        &lt;BrowserRouter basename={import.meta.env.BASE_URL}&gt;</div></div>
+        </div>
+      </div>
+
+      <!-- File 7: frontend/src/api/axiosClient.js -->
+      <div class="diff-card">
+        <div class="diff-card-header">
+          <div class="diff-card-title">
+            <span>📄 frontend/src/api/axiosClient.js</span>
+            <span class="pill-tag pill-frontend">API Client</span>
+          </div>
+          <div><span style="color: var(--accent-success); font-weight: bold;">Modified Auth Redirect</span></div>
+        </div>
+        <div class="diff-desc">
+          <strong>Why this change:</strong> When a user's refresh token expires, the client redirects to login using the app's base URL prefix.
+        </div>
+        <div class="diff-code">
+          <div class="diff-row row-del"><div class="diff-ln">49</div><div class="diff-sign">-</div><div class="diff-txt">        window.location.href = '/login';</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">49</div><div class="diff-sign">+</div><div class="diff-txt">        window.location.href = `${import.meta.env.BASE_URL || '/'}login`;</div></div>
+        </div>
+      </div>
+
+      <!-- File 8: operator/vite.config.js -->
+      <div class="diff-card">
+        <div class="diff-card-header">
+          <div class="diff-card-title">
+            <span>📄 operator/vite.config.js</span>
+            <span class="pill-tag pill-operator">Operator UI</span>
+          </div>
+          <div><span style="color: var(--accent-success); font-weight: bold;">CRITICAL Subpath Base</span></div>
+        </div>
+        <div class="diff-desc">
+          <strong>Why this change:</strong> Essential for Nginx hosting! Informs Vite that all assets (JS, CSS, SVGs) are served under <code>/operator/</code> so generated HTML tags render as <code>&lt;script src="/operator/assets/index.js"&gt;</code> instead of root <code>/assets/index.js</code>.
+        </div>
+        <div class="diff-code">
+          <div class="diff-row"><div class="diff-ln">9</div><div class="diff-sign"> </div><div class="diff-txt">  return {</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">10</div><div class="diff-sign">+</div><div class="diff-txt">    base: env.VITE_BASE_PATH || '/operator/',</div></div>
+          <div class="diff-row"><div class="diff-ln">11</div><div class="diff-sign"> </div><div class="diff-txt">    plugins: [react()],</div></div>
+        </div>
+      </div>
+
+      <!-- File 9: operator/src/App.jsx -->
+      <div class="diff-card">
+        <div class="diff-card-header">
+          <div class="diff-card-title">
+            <span>📄 operator/src/App.jsx</span>
+            <span class="pill-tag pill-operator">Operator Routing</span>
+          </div>
+          <div><span style="color: var(--accent-success); font-weight: bold;">Basename Attached</span></div>
+        </div>
+        <div class="diff-desc">
+          <strong>Why this change:</strong> Ensures React Router understands that route <code>/plan</code> is physically accessed at <code>http://&lt;server-ip&gt;/operator/plan</code>.
+        </div>
+        <div class="diff-code">
+          <div class="diff-row row-del"><div class="diff-ln">30</div><div class="diff-sign">-</div><div class="diff-txt">        &lt;BrowserRouter&gt;</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">30</div><div class="diff-sign">+</div><div class="diff-txt">        &lt;BrowserRouter basename={import.meta.env.BASE_URL}&gt;</div></div>
+        </div>
+      </div>
+
+      <!-- File 10: operator/src/api/axiosClient.js -->
+      <div class="diff-card">
+        <div class="diff-card-header">
+          <div class="diff-card-title">
+            <span>📄 operator/src/api/axiosClient.js</span>
+            <span class="pill-tag pill-operator">Operator Client</span>
+          </div>
+          <div><span style="color: var(--accent-success); font-weight: bold;">Subpath Auth Redirect</span></div>
+        </div>
+        <div class="diff-desc">
+          <strong>Why this change:</strong> Redirects expired operator sessions to <code>/operator/login</code> rather than breaking out to the root admin login.
+        </div>
+        <div class="diff-code">
+          <div class="diff-row row-del"><div class="diff-ln">39</div><div class="diff-sign">-</div><div class="diff-txt">        window.location.href = '/login';</div></div>
+          <div class="diff-row row-add"><div class="diff-ln">39</div><div class="diff-sign">+</div><div class="diff-txt">        window.location.href = `${import.meta.env.BASE_URL || '/'}login`;</div></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- New Infrastructure Files -->
+    <section class="section-card">
+      <div class="section-header">
+        <h2 class="section-title">📦 New Infrastructure Files Added to Root</h2>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>File Name</th>
+              <th>Category</th>
+              <th>Key Responsibility</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>nginx.conf</strong></td>
+              <td><span class="pill-tag pill-nginx">Nginx Config</span></td>
+              <td>Directs port 80 traffic to <code>frontend/dist</code>, <code>operator/dist</code>, and upstream backend proxy.</td>
+            </tr>
+            <tr>
+              <td><strong>mime.types</strong></td>
+              <td><span class="pill-tag pill-nginx">Static Mimes</span></td>
+              <td>MIME mappings for JavaScript modules, CSS, WebP, WOFF2, and JSON.</td>
+            </tr>
+            <tr>
+              <td><strong>start-backend.bat</strong></td>
+              <td><span class="pill-tag pill-backend">Startup</span></td>
+              <td>Launches <code>triveni-backend.exe</code> or runs <code>node src/server.js</code> fallback.</td>
+            </tr>
+            <tr>
+              <td><strong>start-nginx.bat</strong></td>
+              <td><span class="pill-tag pill-nginx">Startup</span></td>
+              <td>Launches background Nginx process and outputs LAN IP URLs.</td>
+            </tr>
+            <tr>
+              <td><strong>stop-nginx.bat</strong></td>
+              <td><span class="pill-tag pill-nginx">Control</span></td>
+              <td>Executes <code>nginx -s stop</code> to safely terminate all worker threads.</td>
+            </tr>
+            <tr>
+              <td><strong>reload-nginx.bat</strong></td>
+              <td><span class="pill-tag pill-nginx">Control</span></td>
+              <td>Executes <code>nginx -s reload</code> for zero-downtime config updates.</td>
+            </tr>
+            <tr>
+              <td><strong>DEPLOYMENT_GUIDE_NSSM.txt</strong></td>
+              <td><span class="pill-tag" style="background: rgba(59,130,246,0.2); color:#93c5fd;">Windows Daemon</span></td>
+              <td>Complete instructions for registering backend and Nginx as automatic Windows Services via NSSM.</td>
+            </tr>
+            <tr>
+              <td><strong>triveni-deployment.zip</strong></td>
+              <td><span class="pill-tag" style="background: rgba(245,158,11,0.2); color:#fde68a;">Deploy Package</span></td>
+              <td>Standalone 30MB zipped deployment package with pre-compiled bundles ready for factory rollout.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Verification Checklist -->
+    <section class="section-card">
+      <div class="section-header">
+        <h2 class="section-title">🧪 Post-Migration Verification & Health Checklist</h2>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Test Target</th>
+              <th>How to Test</th>
+              <th>Expected Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Admin Portal</strong></td>
+              <td>Visit <code>http://localhost/</code></td>
+              <td>Loads Triveni Admin Login / Planning Dashboard</td>
+            </tr>
+            <tr>
+              <td><strong>Operator UI</strong></td>
+              <td>Visit <code>http://localhost/operator/</code></td>
+              <td>Loads Touchscreen Operator Interface</td>
+            </tr>
+            <tr>
+              <td><strong>Backend REST API</strong></td>
+              <td>Visit <code>http://localhost/health</code></td>
+              <td>Returns <code>{"success":true,"message":"OK","data":{"uptime":...}}</code></td>
+            </tr>
+            <tr>
+              <td><strong>WebSocket Connection</strong></td>
+              <td>Open DevTools on <code>/operator/</code> & check Network WS</td>
+              <td>Connection to <code>/socket.io/?EIO=4&transport=websocket</code> status <code>101 Switching Protocols</code></td>
+            </tr>
+            <tr>
+              <td><strong>Asset Bundles</strong></td>
+              <td>Check DevTools Network on <code>/operator/</code></td>
+              <td>All JS & CSS files load from <code>/operator/assets/*</code> with status <code>200 OK</code></td>
+            </tr>
+            <tr>
+              <td><strong>Deep Linking (F5)</strong></td>
+              <td>Navigate to <code>/operator/plan</code> and refresh browser</td>
+              <td>Page reloads cleanly without 404 error (handled by <code>try_files</code>)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    }
+  </script>
+</body>
+</html>

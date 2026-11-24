@@ -1,0 +1,1 @@
+{"fileName":"schedule-test.xlsx","validRows":[{"customerName":"Test Customer","itemCode":"TEST-ITEM","machineId":1,"machineCode":"M001","division":"X","size":"10mm","lotNo":"LOT-TEST","quantity":200,"requiredMinutes":12,"sourceRowNo":2}],"errors":[]}

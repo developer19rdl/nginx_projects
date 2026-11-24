@@ -1,0 +1,1 @@
+{"fileName":"reassign-test.xlsx","validRows":[{"customerName":"Reassign Test Co","priority":"P3","itemCode":"TEST-R","machineId":4,"machineCode":"SLITTING-1","division":"Z","size":"5mm","lotNo":"LOT-R","quantity":50,"requiredMinutes":3.75,"sourceRowNo":2}],"errors":[]}

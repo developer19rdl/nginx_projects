@@ -1,0 +1,58 @@
+{
+  "name": "mallik-ems",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "bin": "server.js",
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "start": "supervisor server.js",
+    "db:migrate": "node scripts/db-migrate.js",
+    "build:exe": "pkg . --targets node18-win-x64 --output dist/ems-server.exe"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "npm:bcryptjs@^2.4.3",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.3.1",
+    "excel": "^1.0.1",
+    "exceljs": "^4.4.0",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.44",
+    "mqtt": "^5.3.4",
+    "mqtt-packet": "^9.0.0",
+    "mssql": "^10.0.1",
+    "multer": "^2.1.1",
+    "mysql2": "^3.6.5",
+    "node-cron": "^3.0.3",
+    "node-schedule": "^2.1.1",
+    "nodemailer": "^6.9.15",
+    "pm2": "^5.3.1",
+    "redis": "^5.12.1",
+    "socket.io": "^4.8.3",
+    "supervisor": "^0.12.0",
+    "winston": "^3.12.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "pkg": "^5.8.1"
+  },
+  "pkg": {
+    "scripts": [
+      "app/**/*.js"
+    ],
+    "assets": [
+      "app/public/**/*"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ]
+  }
+}

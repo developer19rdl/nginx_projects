@@ -1,0 +1,44 @@
+.add_container {
+    background-color: rgb(255, 255, 255);
+    border: 1px solid #DCDCDC;
+    border-radius: 5px;
+}
+
+.add_subcontainer {
+    background-color: #f7f7fc;
+    padding: 20px;
+    border-radius: 5px 5px 0 0;
+}
+
+.add_bottomContainer {
+    /* background-color: blue; */
+    margin: 20px;
+}
+
+.add_bottomSubContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.add_fieldHeader {
+    width: 200px;
+}
+
+.add_field {
+    /* background-color: aquamarine; */
+}
+
+@media screen and (max-width:620px) {
+    .add_fieldHeader {
+    }
+
+    .add_bottomSubContainer {
+        /* justify-content:flex-start; */
+    }
+
+    .ghjk {
+    }
+}

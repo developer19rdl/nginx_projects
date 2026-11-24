@@ -1,0 +1,92 @@
+.production_bottomContainer {
+    /* border: 1px solid rgb(159, 159, 159); */
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+
+.production_headerContainer {
+    background-color: #f7f7fc;
+    padding: 20px;
+    border-radius: 5px 5px 0 0;
+}
+
+.production_datePicker {
+    /* width: 270px; */
+    height: 55px;
+    border-radius: 5px;
+    color: gray;
+    border: 1px solid #c2c2c2;
+    font-size: 18px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.production_datePicker:hover {
+    border: 1px solid #000000;
+}
+
+.production_from_date_Container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.production_to_date_Container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.production_from_date_header {
+    width: 130px;
+}
+
+.production_bottm_date_containet {
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+.production_button_container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+/* /////////////////////////////////////// */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    /* Ensure tooltip text is hidden by default */
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    /* Position the tooltip text - adjust as needed */
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+
+    /* Fade in tooltip */
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* Show the tooltip text when hovering over the tooltip container */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}

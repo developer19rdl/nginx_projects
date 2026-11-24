@@ -1,0 +1,253 @@
+.anomaly-wrapper {
+  padding: 16px;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+.anomaly-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.anomaly-header h6 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #051622;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+/* ─── Mode Toggle ─────────────────────────────────────────────────────────── */
+.mode-toggle-group {
+  margin-bottom: 16px;
+}
+
+.mode-toggle-group .MuiToggleButton-root {
+  text-transform: none;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 20px;
+  color: #555;
+  border-color: #c0cfe0;
+}
+
+.mode-toggle-group .MuiToggleButton-root.Mui-selected {
+  background-color: #051622;
+  color: #ffffff;
+  border-color: #051622;
+}
+
+.mode-toggle-group .MuiToggleButton-root.Mui-selected:hover {
+  background-color: #0a2d47;
+}
+
+/* ─── Control Panel ───────────────────────────────────────────────────────── */
+.control-panel {
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  border: 1px solid #dde3ed !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+.control-panel-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.control-panel-row:last-child {
+  margin-bottom: 0;
+}
+
+.detection-mode-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  min-width: 100px;
+}
+
+.detect-btn {
+  height: 40px !important;
+  min-width: 170px !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  text-transform: none !important;
+  background-color: #051622 !important;
+  color: #fff !important;
+  border-radius: 6px !important;
+}
+
+.detect-btn:hover {
+  background-color: #0a2d47 !important;
+}
+
+.detect-btn:disabled {
+  background-color: #b0bec5 !important;
+}
+
+.sensitivity-toggle .MuiToggleButton-root {
+  font-size: 12px;
+  text-transform: none;
+  font-weight: 600;
+  padding: 4px 14px;
+  color: #555;
+  border-color: #c0cfe0;
+}
+
+.sensitivity-toggle .MuiToggleButton-root.Mui-selected {
+  background-color: #1565C0;
+  color: #fff;
+  border-color: #1565C0;
+}
+
+/* ─── Summary Chips ───────────────────────────────────────────────────────── */
+.summary-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.summary-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 10px;
+  min-width: 110px;
+  border: 1.5px solid;
+  background: #fff;
+  cursor: default;
+}
+
+.summary-chip-count {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.summary-chip-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.chip-critical  { color: #c62828; border-color: #e57373; background: #fff8f8; }
+.chip-high      { color: #bf360c; border-color: #ff8a65; background: #fff3ee; }
+.chip-medium    { color: #f57f17; border-color: #ffd54f; background: #fffde7; }
+.chip-drop      { color: #6a1b9a; border-color: #ce93d8; background: #f9f0ff; }
+.chip-total     { color: #0d47a1; border-color: #90caf9; background: #e3f2fd; }
+
+/* ─── Chart & Table Cards ─────────────────────────────────────────────────── */
+.chart-card,
+.table-card {
+  background: #ffffff;
+  border: 1px solid #dde3ed;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.table-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #051622;
+}
+
+.chart-subtitle {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 12px;
+  margin-top: -4px;
+}
+
+/* ─── Empty State ─────────────────────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  color: #94a3b8;
+}
+
+.empty-state-icon {
+  font-size: 52px !important;
+  color: #cbd5e1;
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  font-size: 14px;
+  margin: 0;
+  text-align: center;
+  max-width: 340px;
+  line-height: 1.6;
+}
+
+/* ─── Loading ─────────────────────────────────────────────────────────────── */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  gap: 14px;
+  color: #666;
+  font-size: 14px;
+}
+
+/* ─── No-anomaly message ──────────────────────────────────────────────────── */
+.no-anomaly-msg {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  color: #2e7d32;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+/* ─── Severity chip in DataGrid ───────────────────────────────────────────── */
+.severity-pill {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.sev-critical { background: #ffebee; color: #c62828; }
+.sev-high     { background: #fbe9e7; color: #bf360c; }
+.sev-medium   { background: #fffde7; color: #f57f17; }
+.sev-drop     { background: #f3e5f5; color: #6a1b9a; }
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .anomaly-wrapper { padding: 10px; }
+  .control-panel   { padding: 12px; }
+  .detect-btn      { width: 100% !important; }
+  .summary-chip    { min-width: 80px; padding: 8px 12px; }
+}

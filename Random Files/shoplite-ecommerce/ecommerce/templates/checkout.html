@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Checkout - ShopLite{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Checkout</h1>
+
+<div class="checkout-layout">
+    <div class="checkout-form-section">
+        <h2>Shipping Address</h2>
+        <form method="post">
+            <div class="form-group">
+                <label for="address">Full Address</label>
+                <textarea id="address" name="address" rows="4" required
+                    placeholder="Street, City, State, ZIP Code">{{ request.form.get('address', '') }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Place Order</button>
+        </form>
+    </div>
+    <div class="checkout-summary">
+        <h3>Order Summary</h3>
+        {% for item in items %}
+        <div class="checkout-item">
+            <span>{{ item.name }} <small>x{{ item.quantity }}</small></span>
+            <span>${{ "%.2f"|format(item.price * item.quantity) }}</span>
+        </div>
+        {% endfor %}
+        <div class="checkout-total">
+            <span>Total</span>
+            <span>${{ "%.2f"|format(total) }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

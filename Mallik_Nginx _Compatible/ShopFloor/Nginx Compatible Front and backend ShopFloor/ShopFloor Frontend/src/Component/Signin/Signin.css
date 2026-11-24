@@ -1,0 +1,35 @@
+.Container {
+    background-color: rgb(240, 237, 234);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+}
+
+.subContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 60px;
+}
+
+.lableText {
+    text-align: center;
+}
+.HeaderlableText {
+    text-align: center;
+    font-weight: bold;
+    color: blueviolet;
+    font-family:Verdana, Geneva, Tahoma, sans-serif
+}
+.textFieldStyle{
+    margin-bottom: 20px;
+}
+.imageStyles{
+    width: 150px;
+    height: 150px;
+    align-self: center;
+}
+.buttonStyle{
+}
