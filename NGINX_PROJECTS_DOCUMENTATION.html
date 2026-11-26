@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nginx Multi-Project Enterprise Architecture Documentation</title>
+  
+  <!-- Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Mermaid.js for Vector Architecture Diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      themeVariables: {
+        fontFamily: 'Inter, sans-serif',
+        fontSize: '11px',
+        primaryColor: '#e0e7ff',
+        primaryBorderColor: '#6366f1',
+        primaryTextColor: '#1e1b4b',
+        lineColor: '#4f46e5',
+        secondaryColor: '#f0fdf4',
+        tertiaryColor: '#fef3c7'
+      },
+      flowchart: { curve: 'basis', htmlLabels: true }
+    });
+  </script>
+
+  <style>
+    /* ==========================================================================
+       CSS Variables & Reset
+       ========================================================================== */
+    :root {
+      --primary: #4338ca;
+      --primary-dark: #312e81;
+      --primary-light: #e0e7ff;
+      --secondary: #0284c7;
+      --accent-green: #059669;
+      --accent-amber: #d97706;
+      --accent-rose: #e11d48;
+      
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-subtle: #64748b;
+      
+      --border-light: #e2e8f0;
+      --border-dark: #cbd5e1;
+      --bg-neutral: #f8fafc;
+      --bg-code: #090d16;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', Consolas, "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #0f172a;
+      font-family: var(--font-sans);
+      color: var(--text-main);
+      line-height: 1.45;
+      font-size: 9.5pt;
+      -webkit-font-smoothing: antialiased;
+      padding: 30px 0;
+    }
+
+    /* Floating Print Control Bar */
+    .toolbar {
+      position: fixed;
+      top: 15px;
+      right: 25px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      padding: 8px 16px;
+      border-radius: 9999px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .btn-print {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #4f46e5;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-print:hover {
+      background: #4338ca;
+      transform: translateY(-1px);
+    }
+    .toolbar-info {
+      color: #cbd5e1;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    /* ==========================================================================
+       A4 Page Definition & Screen Representation
+       ========================================================================== */
+    .pages-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 25px;
+    }
+
+    .a4-page {
+      width: 210mm;
+      height: 297mm;
+      max-height: 297mm;
+      padding: 13mm 15mm 12mm 15mm;
+      background: #ffffff;
+      border-radius: 3px;
+      box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.45);
+      box-sizing: border-box;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      page-break-after: always;
+      break-after: page;
+    }
+
+    /* Page Header */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1.5px solid var(--border-light);
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .org-logo {
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 11px;
+    }
+    .header-title {
+      font-size: 8pt;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .header-badge {
+      font-size: 7pt;
+      font-weight: 700;
+      padding: 2px 7px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    /* Page Body */
+    .page-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      overflow: hidden;
+    }
+
+    /* Page Footer */
+    .page-footer {
+      border-top: 1px solid var(--border-light);
+      padding-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 7.5pt;
+      color: var(--text-subtle);
+      margin-top: 6px;
+    }
+
+    /* ==========================================================================
+       Typography & Elements
+       ========================================================================== */
+    h1 {
+      font-size: 17pt;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+    h2 {
+      font-size: 11.5pt;
+      font-weight: 700;
+      color: var(--primary-dark);
+      border-left: 3.5px solid var(--primary);
+      padding-left: 7px;
+      line-height: 1.25;
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }
+    h3 {
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    p {
+      color: var(--text-muted);
+      font-size: 9pt;
+      line-height: 1.4;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8pt;
+      margin: 2px 0;
+    }
+    th {
+      background: #f1f5f9;
+      color: var(--text-main);
+      font-weight: 700;
+      text-align: left;
+      padding: 5px 8px;
+      border: 1px solid var(--border-light);
+      text-transform: uppercase;
+      font-size: 7pt;
+      letter-spacing: 0.05em;
+    }
+    td {
+      padding: 4.5px 8px;
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
+      vertical-align: middle;
+    }
+    tr:nth-child(even) td {
+      background: #fafafa;
+    }
+    .port-pill {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 7.5pt;
+      font-weight: 700;
+      padding: 1.5px 6px;
+      border-radius: 4px;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+    .tag-pill {
+      display: inline-block;
+      font-size: 7pt;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+    .status-ok {
+      background: #dcfce7;
+      color: #15803d;
+      font-weight: 700;
+    }
+
+    /* Callout Card */
+    .card {
+      background: #f8fafc;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 7px 10px;
+    }
+    .card-accent {
+      border-left: 3.5px solid var(--secondary);
+    }
+    .card-warn {
+      background: #fffbeb;
+      border-color: #fde68a;
+      border-left: 3.5px solid var(--accent-amber);
+    }
+
+    /* Grid layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    /* Code Snippets */
+    .code-box {
+      background: var(--bg-code);
+      border-radius: 5px;
+      padding: 7px 10px;
+      font-family: var(--font-mono);
+      font-size: 7.5pt;
+      color: #e2e8f0;
+      line-height: 1.35;
+      overflow: hidden;
+      border: 1px solid #1e293b;
+    }
+    .code-box .kw { color: #818cf8; font-weight: 600; }
+    .code-box .str { color: #34d399; }
+    .code-box .com { color: #64748b; font-style: italic; }
+    .code-box .var { color: #38bdf8; }
+    .code-box .num { color: #f59e0b; }
+
+    /* Diagram Wrappers */
+    .diagram-container {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 6px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    .diagram-container svg {
+      max-width: 100%;
+      height: auto !important;
+      max-height: 140px;
+    }
+
+    /* Features List */
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 3.5px;
+    }
+    .feature-list li {
+      font-size: 8.5pt;
+      color: var(--text-muted);
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .feature-list li::before {
+      content: "✓";
+      color: var(--accent-green);
+      font-weight: 800;
+      font-size: 8pt;
+      margin-top: 1px;
+    }
+
+    /* ==========================================================================
+       Print Styling Rules (Strict A4 Paper Output)
+       ========================================================================== */
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    @media print {
+      body {
+        background: transparent !important;
+        padding: 0 !important;
+      }
+      .toolbar {
+        display: none !important;
+      }
+      .pages-container {
+        gap: 0 !important;
+      }
+      .a4-page {
+        width: 210mm !important;
+        height: 297mm !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Print Controls -->
+  <div class="toolbar">
+    <div class="toolbar-info">📄 A4 Document &bull; 6 Pages</div>
+    <button class="btn-print" onclick="window.print()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"></path></svg>
+      Print / Save as PDF
+    </button>
+  </div>
+
+  <div class="pages-container">
+
+    <!-- ========================================================================
+         PAGE 1: Master Architecture, Topology & Port Matrix
+         ======================================================================== -->
+    <div class="a4-page" id="page-1">
+      <header class="page-header">
+        <div class="header-left">
+          <div class="org-logo">R</div>
+          <span class="header-title">RDL Technologies &bull; Systems Architecture</span>
+        </div>
+        <span class="header-badge">Master Documentation</span>
+      </header>
+
+      <main class="page-body">
+        <!-- Hero Header -->
+        <div style="margin-bottom: 2px;">
+          <div style="font-size: 8pt; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px;">
+            Enterprise Multi-Module Infrastructure
+          </div>
+          <h1>Nginx Reverse Proxy & Multi-Service System Architecture</h1>
+          <p style="margin-top: 3px; font-size: 8.5pt;">
+            Comprehensive technical specification and operations guide for multi-tier industrial applications 
+            spanning Energy Monitoring (EMS), Shop Floor Execution (MES), Enterprise Resource Planning (ERP), and Analytics.
+          </p>
+        </div>
+
+        <!-- System Topology Diagram -->
+        <div>
+          <h2>1. Master System Topology Diagram</h2>
+          <div class="diagram-container" style="padding: 4px;">
+            <pre class="mermaid">
+flowchart LR
+    Client["Client Devices / Factory Kiosks"] --> Gateway["Nginx Reverse Proxy Gateway"]
+    
+    Gateway -->|":80"| Host80["Port 80 (Web Core)"]
+    Gateway -->|":81"| Host81["Port 81 (ShopFloor)"]
+    Gateway -->|":82"| Host82["Port 82 (EMS)"]
+    
+    Host80 -->|"/"| TrivAdmin["Triveni Admin (Vite Static)"]
+    Host80 -->|"/operator/"| TrivOp["Operator Kiosk (Static)"]
+    Host80 -->|"/api/"| TrivBackend["Triveni Node.js (:5050)"]
+    Host80 -->|"/MallikEngineering/"| MallikERP["Mallik ERP Client & API (:8000)"]
+    
+    Host81 -->|"/"| SF_UI["ShopFloor UI (React Static)"]
+    Host81 -->|"/api/"| SF_API["ShopFloor Node.js (:8004)"]
+    
+    Host82 -->|"/"| EMS_UI["EMS UI (React Static)"]
+    Host82 -->|"/api/, /socket.io/"| EMS_API["EMS Node.js (:8005)"]
+            </pre>
+          </div>
+        </div>
+
+        <!-- Master Port Allocation Matrix -->
+        <div>
+          <h2>2. Master Port & Service Allocation Matrix</h2>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 14%;">Project</th>
+                <th style="width: 11%;">Public Port</th>
+                <th style="width: 25%;">Routes & Subpaths</th>
+                <th style="width: 18%;">Internal Target</th>
+                <th style="width: 11%;">Protocol</th>
+                <th>Core Function</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Mallik ERP</strong></td>
+                <td><span class="port-pill">Port 80</span></td>
+                <td><code>/</code> &rarr; <code>/MallikEngineering/</code><br><code>/api/</code>, <code>/user/</code>, <code>/uploads/</code></td>
+                <td><code>127.0.0.1:8000</code></td>
+                <td>HTTP + WSS</td>
+                <td>Enterprise Resource Planning, Document Tracking, Node Backend.</td>
+              </tr>
+              <tr>
+                <td><strong>Triveni MES</strong></td>
+                <td><span class="port-pill">Port 80</span></td>
+                <td><code>/</code> (Admin), <code>/operator/</code> (Kiosk)<br><code>/api/</code>, <code>/socket.io/</code>, <code>/health</code></td>
+                <td><code>127.0.0.1:5050</code><br><small>(Upstream pool)</small></td>
+                <td>HTTP + Socket.IO</td>
+                <td>Dual-Frontend Factory Execution, Live OEE, MQTT sensor relay.</td>
+              </tr>
+              <tr>
+                <td><strong>Js Based</strong></td>
+                <td><span class="port-pill">Port 80</span></td>
+                <td><code>/</code> (Dashboard), <code>/api/dashboard</code></td>
+                <td><code>127.0.0.1:5000</code></td>
+                <td>HTTP Rest</td>
+                <td>Vite SPA + Express API; complete CORS elimination pattern.</td>
+              </tr>
+              <tr>
+                <td><strong>ShopFloor</strong></td>
+                <td><span class="port-pill">Port 81</span></td>
+                <td><code>/</code>, <code>/MallikShopFloor/</code><br><code>/api/</code>, <code>/uploads/</code></td>
+                <td><code>127.0.0.1:8004</code><br><small>(or :8003 client)</small></td>
+                <td>HTTP REST</td>
+                <td>Assembly line monitoring, machine dispatch, parameter limits.</td>
+              </tr>
+              <tr>
+                <td><strong>Mallik EMS</strong></td>
+                <td><span class="port-pill">Port 82</span></td>
+                <td><code>/</code>, <code>/EMS/</code>, <code>/MallikEMS/</code><br><code>/api/</code>, <code>/socket.io/</code></td>
+                <td><code>127.0.0.1:8005</code></td>
+                <td>HTTP + WebSockets</td>
+                <td>Real-time smart meter telemetry, sub-station energy analysis.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Architectural Highlights -->
+        <div class="grid-3" style="margin-top: 2px;">
+          <div class="card card-accent">
+            <h3 style="font-size: 8.5pt; color: var(--primary);">Decoupled Modularity</h3>
+            <p style="font-size: 7.5pt;">Master <code>nginx.conf</code> dynamically includes independent location configs (<code>erp.locations.conf</code>, <code>ems.locations.conf</code>), enabling independent lifecycle updates.</p>
+          </div>
+          <div class="card card-accent">
+            <h3 style="font-size: 8.5pt; color: var(--secondary);">Kernel-Level Speed</h3>
+            <p style="font-size: 7.5pt;">Uses <code>sendfile on;</code> to offload static React/Vite builds directly through the Windows OS kernel, saving ~95% RAM compared to Apache MPM threads.</p>
+          </div>
+          <div class="card card-accent">
+            <h3 style="font-size: 8.5pt; color: var(--accent-green);">Zero-CORS Single Origin</h3>
+            <p style="font-size: 7.5pt;">Unifies client web interfaces and backend Node.js APIs behind unified ports (80/81/82), preventing browser cross-origin preflight latency.</p>
+          </div>
+        </div>
+      </main>
+
+      <footer class="page-footer">
+        <span>Confidential &bull; RDL Technologies Pvt Ltd</span>
+        <span>Nginx Multi-Project Architecture Manual</span>
+        <span>Page 1 of 6</span>
+      </footer>
+    </div>
+
+    <!-- ========================================================================
+         PAGE 2: Module 1 — EMS (Energy Management System - Port 82)
+         ======================================================================== -->
+    <div class="a4-page" id="page-2">
+      <header class="page-header">
+        <div class="header-left">
+          <div class="org-logo">R</div>
+          <span class="header-title">Module Deep Dive &bull; Port 82 Architecture</span>
+        </div>
+        <span class="header-badge">EMS Module</span>
+      </header>
+
+      <main class="page-body">
+        <div>
+          <h2>1. Mallik EMS: Industrial Energy Management System</h2>
+          <p style="font-size: 8.5pt;">
+            The <strong>EMS</strong> platform provides sub-second monitoring of power meters, transformers, and heavy equipment. 
+            Nginx isolates the entire EMS frontend and backend onto dedicated <strong>Port 82</strong>, ensuring zero interference with ERP or ShopFloor operations.
+          </p>
+        </div>
+
+        <!-- Routing Flow Diagram -->
+        <div>
+          <h3 style="font-size: 8.5pt; margin-bottom: 2px;">Port 82 Ingress & Protocol Routing Flow</h3>
+          <div class="diagram-container" style="padding: 4px;">
+            <pre class="mermaid">
+flowchart TD
+    Req["Request: http://192.168.8.8:82/..."] --> Router{"URI Route Match"}
+    
+    Router -->|"Root: / or /EMS/ or /MallikEMS/"| Disk["Disk Serve: D:/EMS/frontend/build/build/"]
+    Router -->|"/api/*"| API["Proxy Pass: http://127.0.0.1:8005/api/"]
+    Router -->|"/socket.io/*"| WSS["WebSocket Upgrade: http://127.0.0.1:8005/socket.io/"]
+    Router -->|"/public/*"| Pub["Static Media Proxy: http://127.0.0.1:8005/"]
+    
+    Disk -->|"SPA Fallback"| Index["try_files $uri $uri/ /index.html"]
+            </pre>
+          </div>
+        </div>
+
+        <!-- Directive Deep-Dive Table -->
+        <div>
+          <h3 style="font-size: 8.5pt; margin-bottom: 2px;">Key Nginx Directives & Production Rationale</h3>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 28%;">Directive & Parameter</th>
+                <th style="width: 28%;">Scope / Location</th>
+                <th>Technical Purpose & Industrial Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>listen 82;</code></td>
+                <td><code>server</code> block</td>
+                <td>Binds explicitly to port 82 on <code>192.168.8.8</code> and <code>localhost</code>, allowing side-by-side execution with ERP (80) and ShopFloor (81).</td>
+              </tr>
+              <tr>
+                <td><code>client_max_body_size 500m;</code></td>
+                <td>Global & <code>server</code></td>
+                <td>Overrides Nginx's default 1MB buffer to permit multi-megabyte smart meter batch telemetry dumps and firmware OTA files.</td>
+              </tr>
+              <tr>
+                <td><code>try_files $uri $uri/ /index.html;</code></td>
+                <td><code>location /</code>, <code>/EMS/</code></td>
+                <td>Single Page Application (SPA) routing: ensures client-side deep links (e.g. <code>:82/EMS/meter/42</code>) load without triggering 404 Not Found errors on browser refresh.</td>
+              </tr>
+              <tr>
+                <td><code>proxy_set_header Upgrade $http_upgrade;<br>proxy_set_header Connection "upgrade";</code></td>
+                <td><code>location /socket.io/</code></td>
+                <td>Performs bidirectional HTTP/1.1 WebSocket handshakes required by Socket.IO for streaming real-time KEB energy data and meter alerts.</td>
+              </tr>
+              <tr>
+                <td><code>proxy_read_timeout 300s;</code></td>
+                <td><code>/api/</code> & <code>/socket.io/</code></td>
+                <td>Extends the connection timeout to 5 minutes, preventing Gateway Timeouts during intensive monthly energy aggregation SQL queries.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Production Configuration Breakdown -->
+        <div>
+          <h3 style="font-size: 8.5pt; margin-bottom: 2px;">Production Configuration Snippet (<code>ems.locations.conf</code>)</h3>
+          <div class="code-box">
+<span class="kw">server</span> {
+    <span class="kw">listen</span> <span class="num">82</span>;
+    <span class="kw">server_name</span> <span class="var">192.168.8.8 localhost _</span>;
+    <span class="kw">client_max_body_size</span> <span class="num">500m</span>;
+
+    <span class="com"># 1. Frontend Production Build (Direct Disk Serving with SPA Fallback)</span>
+    <span class="kw">location</span> <span class="var">/</span> {
+        <span class="kw">root</span> <span class="str">"D:/EMS/frontend/build/build"</span>;
+        <span class="kw">index</span> index.html;
+        <span class="kw">try_files</span> <span class="var">$uri $uri/ /index.html</span>;
+    }
+    <span class="kw">location</span> ^~ <span class="var">/EMS/</span> {
+        <span class="kw">alias</span> <span class="str">"D:/EMS/frontend/build/build/"</span>;
+        <span class="kw">index</span> index.html;
+        <span class="kw">try_files</span> <span class="var">$uri $uri/ /EMS/index.html</span>;
+    }
+
+    <span class="com"># 2. REST API & WebSocket Streaming Reverse Proxy</span>
+    <span class="kw">location</span> <span class="var">/api/</span> {
+        <span class="kw">proxy_pass</span> <span class="var">http://127.0.0.1:8005/api/</span>;
+        <span class="kw">proxy_http_version</span> <span class="num">1.1</span>;
+        <span class="kw">proxy_set_header</span> Host <span class="var">$host</span>;
+        <span class="kw">proxy_read_timeout</span> <span class="num">300s</span>;
+    }
+    <span class="kw">location</span> <span class="var">/socket.io/</span> {
+        <span class="kw">proxy_pass</span> <span class="var">http://127.0.0.1:8005/socket.io/</span>;
+        <span class="kw">proxy_http_version</span> <span class="num">1.1</span>;
+        <span class="kw">proxy_set_header</span> Upgrade <span class="var">$http_upgrade</span>;
+        <span class="kw">proxy_set_header</span> Connection <span class="str">"upgrade"</span>;
+    }
+}
+          </div>
+        </div>
+      </main>
+
+      <footer class="page-footer">
+        <span>Confidential &bull; RDL Technologies Pvt Ltd</span>
+        <span>Nginx Multi-Project Architecture Manual</span>
+        <span>Page 2 of 6</span>
+      </footer>
+    </div>
+
+    <!-- ========================================================================
+         PAGE 3: Module 2 — Mallik ERP & ShopFloor Integration
+         ======================================================================== -->
+    <div class="a4-page" id="page-3">
+      <header class="page-header">
+        <div class="header-left">
+          <div class="org-logo">R</div>
+          <span class="header-title">Module Deep Dive &bull; Dual-Port ERP Integration</span>
+        </div>
+        <span class="header-badge">ERP & ShopFloor</span>
+      </header>
+
+      <main class="page-body">
+        <div>
+          <h2>2. Mallik ERP (Port 80) & ShopFloor (Port 81)</h2>
+          <p style="font-size: 8.5pt;">
+            This architecture replaces legacy <strong>XAMPP Apache</strong> with an event-driven Nginx deployment. 
+            It concurrently hosts the primary Enterprise Resource Planning (ERP) application alongside the new factory ShopFloor execution platform.
+          </p>
+        </div>
+
+        <!-- Problem / Solution Callout -->
+        <div class="grid-2">
+          <div class="card card-warn">
+            <h3 style="font-size: 8.5pt; color: #b45309;">Legacy Apache / XAMPP Bottlenecks ❌</h3>
+            <ul class="feature-list" style="margin-top: 3px; font-size: 7.5pt;">
+              <li style="color: #78350f;"><strong>Thread Exhaustion</strong>: Apache's <code>mod_proxy</code> spawns OS threads per request, exhausting RAM under concurrent industrial usage.</li>
+              <li style="color: #78350f;"><strong>Fragile Monolith</strong>: Apache crash cascades took down bundled MariaDB databases.</li>
+              <li style="color: #78350f;"><strong>Complex Rewrites</strong>: Fragile <code>.htaccess</code> regular expressions required for SPA routes.</li>
+            </ul>
+          </div>
+          <div class="card card-accent" style="border-left-color: var(--accent-green); background: #f0fdf4;">
+            <h3 style="font-size: 8.5pt; color: #15803d;">Production Nginx Architecture ✅</h3>
+            <ul class="feature-list" style="margin-top: 3px; font-size: 7.5pt;">
+              <li style="color: #14532d;"><strong>Non-Blocking Event Loop</strong>: Handles 10,000+ simultaneous connections with only ~15 MB RAM.</li>
+              <li style="color: #14532d;"><strong>Isolated MariaDB Service</strong>: Database runs as a native Windows Service independent of web servers.</li>
+              <li style="color: #14532d;"><strong>Kernel sendfile</strong>: High-speed zero-copy static asset delivery directly from disk.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Dual Port Architecture Diagram -->
+        <div>
+          <h3 style="font-size: 8.5pt; margin-bottom: 2px;">Dual-Port Service Coexistence Diagram</h3>
+          <div class="diagram-container" style="padding: 4px;">
+            <pre class="mermaid">
+flowchart LR
+    subgraph Port80["Port 80 (Mallik ERP)"]
+        P80["http://192.168.8.8/"] -->|Redirect 301| ERP_UI["/MallikEngineering/<br>(D:/ERP/Client/)"]
+        P80 -->|"/api/, /user/"| ERP_API["Node.js Backend (:8000)"]
+        P80 -->|"/contractReview/"| ERP_CR["Contract Service (:8000)"]
+    end
+    
+    subgraph Port81["Port 81 (ShopFloor)"]
+        P81["http://192.168.8.8:81/"] --> SF_UI["Root & /MallikShopFloor/<br>(D:/Shopfloor/Frontend/build/)"]
+        P81 -->|"/api/"| SF_API["Node.js Backend (:8004)"]
+        P81 -->|"/uploads/"| SF_UP["Media Storage (:8004)"]
+    end
+            </pre>
+          </div>
+        </div>
+
+        <!-- Configuration Comparison & Automated Deployment -->
+        <div>
+          <h3 style="font-size: 8.5pt; margin-bottom: 2px;">Automated PowerShell Deployment Workflow (<code>deploy.ps1</code>)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 25%;">Deployment Stage</th>
+                <th style="width: 35%;">Action Performed</th>
+                <th>Industrial Safety & Verification</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1. Firewall Provisioning</strong></td>
+                <td><code>New-NetFirewallRule -LocalPort 81 -Protocol TCP</code></td>
+                <td>Guarantees shop-floor machine tablets on the <code>192.168.8.x</code> LAN can communicate with port 81.</td>
+              </tr>
+              <tr>
+                <td><strong>2. Configuration Backup</strong></td>
+                <td><code>Copy-Item nginx.conf nginx.conf.bak_TIMESTAMP</code></td>
+                <td>Generates an immediate rollback point before applying new location includes.</td>
+              </tr>
+              <tr>
+                <td><strong>3. Syntax Validation</strong></td>
+                <td><code>nginx.exe -t</code></td>
+                <td>Strict pre-flight test; prevents restarting Nginx with invalid directives or unreadable paths.</td>
+              </tr>
+              <tr>
+                <td><strong>4. Zero-Downtime Reload</strong></td>
+                <td><code>nginx.exe -s reload</code></td>
+                <td>Swaps configuration dynamically in worker memory without dropping active ERP user sessions.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Technical Callout -->
+        <div class="card" style="font-size: 8pt; background: #f8fafc; border: 1px solid var(--border-dark);">
+          <strong>MAC Address Hardware Locking Protection:</strong> The backend services in ShopFloor enforce client MAC validation. 
+          When deploying via Nginx, <code>proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</code> guarantees client hardware addresses are preserved for audit logging.
+        </div>
+      </main>
+
+      <footer class="page-footer">
+        <span>Confidential &bull; RDL Technologies Pvt Ltd</span>
+        <span>Nginx Multi-Project Architecture Manual</span>
+        <span>Page 3 of 6</span>
+      </footer>
+    </div>
+
+    <!-- ========================================================================
+         PAGE 4: Module 3 — Triveni MES Factory Floor Architecture
+         ======================================================================== -->
+    <div class="a4-page" id="page-4">
+      <header class="page-header">
+        <div class="header-left">
+          <div class="org-logo">R</div>
+          <span class="header-title">Module Deep Dive &bull; Industrial Factory MES</span>
+        </div>
+        <span class="header-badge">Triveni MES</span>
+      </header>
+
+      <main class="page-body">
+        <div>
+          <h2>3. Triveni MES: Factory Floor & Upstream Clustering</h2>
+          <p style="font-size: 8.5pt;">
+            Triveni MES runs production lines in steel manufacturing plants. 
+            Nginx serves <strong>two distinct Vite Single Page Applications</strong> over a single port (80) while maintaining persistent upstream connections to an Express & Socket.IO telemetry cluster.
+          </p>
+        </div>
+
+        <!-- Multi-SPA Ingress Diagram -->
+        <div>
+          <h3 style="font-size: 8.5pt; margin-bottom: 2px;">Single-Port Dual-SPA & Upstream Topology</h3>
+          <div class="diagram-container" style="padding: 4px;">
+            <pre class="mermaid">
+flowchart TD
+    Port80["Incoming Request (Port 80)"] --> PathCheck{"Subpath Evaluation"}
+    
+    PathCheck -->|"/operator/*"| OperatorSPA["Operator Touch Kiosk SPA<br>(operator/dist/index.html)"]
+    PathCheck -->|"Default: /*"| AdminSPA["Management Portal SPA<br>(frontend/dist/index.html)"]
+    PathCheck -->|"/api/*"| Pool["upstream triveni_backend<br>(127.0.0.1:5050 - keepalive 32)"]
+    PathCheck -->|"/socket.io/*"| SocketPool["Live Telemetry WebSockets<br>(Coil counters, OEE, downtime)"]
+    PathCheck -->|"/health"| HealthCheck["Micro Health Probe (:5050/health)"]
+            </pre>
+          </div>
+        </div>
+
+        <!-- Architecture Breakdown Grid -->
+        <div class="grid-2">
+          <div class="card card-accent">
+            <h3 style="font-size: 8.5pt; color: var(--primary);">Operator Kiosk vs Admin Routing</h3>
+            <p style="font-size: 7.5pt; margin-top: 2px;">
+              <strong>Operator UI</strong> (<code>/operator/</code>) runs on tablet touchscreens mounted to steel slitting machines, optimized for high-contrast viewing and big-button checklist inputs.<br>
+              <strong>Admin Portal</strong> (<code>/</code>) delivers heavy analytics, shift scheduling, CAPA tracking, and coil inventory management.
+            </p>
+          </div>
+          <div class="card card-accent" style="border-left-color: var(--accent-amber);">
+            <h3 style="font-size: 8.5pt; color: var(--accent-amber);">Upstream Persistent Keepalive</h3>
+            <p style="font-size: 7.5pt; margin-top: 2px;">
+              By declaring <code>upstream triveni_backend { server 127.0.0.1:5050; keepalive 32; }</code>, 
+              Nginx preserves an active pool of 32 reusable TCP connections, cutting TCP handshake latency to nearly zero during bursty machine sensor transmissions.
+            </p>
+          </div>
+        </div>
+
+        <!-- Triveni Configuration Code Snippet -->
+        <div>
+          <h3 style="font-size: 8.5pt; margin-bottom: 2px;">Production Configuration Extract (<code>Triveni/nginx.conf</code>)</h3>
+          <div class="code-box">
+<span class="kw">upstream</span> triveni_backend {
+    <span class="kw">server</span> <span class="var">127.0.0.1:5050</span>;
+    <span class="kw">keepalive</span> <span class="num">32</span>; <span class="com"># Keeps connection pool open to Node.js backend</span>
+}
+
+<span class="kw">server</span> {
+    <span class="kw">listen</span> <span class="num">80</span>;
+    <span class="kw">server_name</span> <span class="var">192.168.1.20 192.168.8.8 localhost _</span>;
+
+    <span class="com"># 1. Operator Web App (Shop-Floor Touch Kiosk)</span>
+    <span class="kw">location</span> ^~ <span class="var">/operator/</span> {
+        <span class="kw">alias</span> <span class="str">"C:/Developer_19_Projects/Nginx demo/Triveni/operator/dist/"</span>;
+        <span class="kw">index</span> index.html;
+        <span class="kw">try_files</span> <span class="var">$uri $uri/ /operator/index.html</span>;
+    }
+
+    <span class="com"># 2. Management & Admin Portal (Default Root SPA)</span>
+    <span class="kw">location</span> <span class="var">/</span> {
+        <span class="kw">root</span> <span class="str">"C:/Developer_19_Projects/Nginx demo/Triveni/frontend/dist"</span>;
+        <span class="kw">index</span> index.html;
+        <span class="kw">try_files</span> <span class="var">$uri $uri/ /index.html</span>;
+    }
+
+    <span class="com"># 3. High-Throughput API & Socket.IO Reverse Proxy</span>
+    <span class="kw">location</span> <span class="var">/api/</span> {
+        <span class="kw">proxy_pass</span> <span class="var">http://triveni_backend/api/</span>;
+        <span class="kw">proxy_http_version</span> <span class="num">1.1</span>;
+        <span class="kw">proxy_read_timeout</span> <span class="num">300s</span>;
+    }
+    <span class="kw">location</span> <span class="var">/socket.io/</span> {
+        <span class="kw">proxy_pass</span> <span class="var">http://triveni_backend/socket.io/</span>;
+        <span class="kw">proxy_http_version</span> <span class="num">1.1</span>;
+        <span class="kw">proxy_set_header</span> Upgrade <span class="var">$http_upgrade</span>;
+        <span class="kw">proxy_set_header</span> Connection <span class="str">"upgrade"</span>;
+    }
+}
+          </div>
+        </div>
+
+        <!-- NSSM Windows Service Table -->
+        <div>
+          <h3 style="font-size: 8.5pt; margin-bottom: 2px;">Windows Service Operations (NSSM & Batch Scripts)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30%;">Control Script / Command</th>
+                <th style="width: 35%;">Action Performed</th>
+                <th>Operational Benefit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>nssm install NginxWeb</code></td>
+                <td>Registers Nginx as an automatic Windows Service</td>
+                <td>Ensures Nginx launches automatically on server reboot before user logon.</td>
+              </tr>
+              <tr>
+                <td><code>start-backend.bat</code></td>
+                <td>Launches Express server on port 5050 via Node.js</td>
+                <td>Monitors background crash recovery for API endpoints.</td>
+              </tr>
+              <tr>
+                <td><code>reload-nginx.bat</code></td>
+                <td>Invokes <code>nginx.exe -s reload</code></td>
+                <td>Refreshes worker routing tables without terminating open connections.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+
+      <footer class="page-footer">
+        <span>Confidential &bull; RDL Technologies Pvt Ltd</span>
+        <span>Nginx Multi-Project Architecture Manual</span>
+        <span>Page 4 of 6</span>
+      </footer>
+    </div>
+
+    <!-- ========================================================================
+         PAGE 5: Modules 4 & 5 — Js Based Dashboard & ShopLite WSGI
+         ======================================================================== -->
+    <div class="a4-page" id="page-5">
+      <header class="page-header">
+        <div class="header-left">
+          <div class="org-logo">R</div>
+          <span class="header-title">Architecture Patterns &bull; Full-Stack & Python WSGI</span>
+        </div>
+        <span class="header-badge">Full-Stack Patterns</span>
+      </header>
+
+      <main class="page-body">
+        <!-- Js Based Section -->
+        <div>
+          <h2>4. Js Based App: Zero-CORS Architecture Pattern</h2>
+          <p style="font-size: 8.5pt;">
+            In modern frontend engineering, developing React and Node.js on separate development ports (e.g. 5173 and 5000) causes <strong>CORS (Cross-Origin Resource Sharing)</strong> issues.
+            The <code>Js Based</code> project demonstrates how Nginx completely eliminates CORS in production.
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3 style="font-size: 8.5pt; margin-bottom: 2px;">CORS Elimination Flow</h3>
+            <div class="diagram-container" style="padding: 4px;">
+              <pre class="mermaid">
+flowchart TD
+    Browser["Browser Client (Port 80)"] --> Nginx["Nginx Reverse Proxy (:80)"]
+    Nginx -->|"fetch('/api/dashboard')"| Backend["Node.js Express (:5000)"]
+    Nginx -->|"Static files"| Dist["client/dist/"]
+              </pre>
+            </div>
+          </div>
+          <div>
+            <h3 style="font-size: 8.5pt; margin-bottom: 2px;">Code Decoupling Benefit</h3>
+            <div class="code-box" style="font-size: 7pt;">
+<span class="com">// Before: Hardcoded local backend port</span>
+<span class="kw">const</span> <span class="var">URL</span> = <span class="str">"http://localhost:5000/api/dashboard"</span>;
+
+<span class="com">// After: Clean relative path (Nginx handles routing)</span>
+<span class="kw">const</span> <span class="var">URL</span> = <span class="str">"/api/dashboard"</span>;
+            </div>
+            <p style="font-size: 7.5pt; margin-top: 4px; color: var(--text-muted);">
+              Frontend code never needs environment-specific backend hostnames. The browser considers <code>/api</code> same-origin, saving HTTP <code>OPTIONS</code> pre-flight handshakes.
+            </p>
+          </div>
+        </div>
+
+        <!-- ShopLite Python WSGI Section -->
+        <div style="margin-top: 4px;">
+          <h2>5. ShopLite E-Commerce: Python Flask & Static Caching</h2>
+          <p style="font-size: 8.5pt;">
+            Located in <code>Random Files</code>, ShopLite demonstrates reverse proxying a Python WSGI Flask application running on port 5000, offloading static file caching to Nginx.
+          </p>
+        </div>
+
+        <div class="diagram-container" style="padding: 4px;">
+          <pre class="mermaid">
+flowchart LR
+    Req["Incoming Web Traffic (:80)"] --> Nginx["Nginx Proxy Engine"]
+    Nginx -->|"/static/* (CSS, JS, Images)"| Cache["Direct Disk Serving<br>(expires 30d; Cache-Control public)"]
+    Nginx -->|"Dynamic Requests (/)"| Flask["Flask Python WSGI Server (:5000)"]
+    Flask --> DB[("SQLite (ecommerce.db)")]
+          </pre>
+        </div>
+
+        <!-- GoAccess & Real-Time Analytics -->
+        <div>
+          <h2>6. Traffic Analytics Integration (GoAccess)</h2>
+          <div class="card card-accent" style="border-left-color: var(--secondary);">
+            <p style="font-size: 8pt; color: var(--text-main); margin-bottom: 3px;">
+              The workspace bundles <strong>GoAccess 1.11</strong> (<code>goaccess-1.11.tar.gz</code>) to convert Nginx combined access logs into an interactive, real-time visual monitoring dashboard:
+            </p>
+            <div class="code-box" style="font-size: 7pt;">
+<span class="com"># Parse active Nginx access logs and stream real-time visual HTML dashboard</span>
+goaccess /var/log/nginx/access.log -o /var/www/html/report.html --log-format=COMBINED --real-time-html
+            </div>
+            <p style="font-size: 7.5pt; margin-top: 3px; color: var(--text-subtle);">
+              Provides sub-second visibility into HTTP 5xx errors, client IP geographic distributions, bandwidth usage, and latency bottlenecks.
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <footer class="page-footer">
+        <span>Confidential &bull; RDL Technologies Pvt Ltd</span>
+        <span>Nginx Multi-Project Architecture Manual</span>
+        <span>Page 5 of 6</span>
+      </footer>
+    </div>
+
+    <!-- ========================================================================
+         PAGE 6: Directives Reference & Production Operations Playbook
+         ======================================================================== -->
+    <div class="a4-page" id="page-6">
+      <header class="page-header">
+        <div class="header-left">
+          <div class="org-logo">R</div>
+          <span class="header-title">Operations Manual &bull; Troubleshooting Matrix</span>
+        </div>
+        <span class="header-badge">Operations & Runbook</span>
+      </header>
+
+      <main class="page-body">
+        <div>
+          <h2>1. Master Nginx Directives Cheatsheet</h2>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 25%;">Directive</th>
+                <th style="width: 25%;">Recommended Setting</th>
+                <th>Industrial Architecture Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>sendfile on;</code></td>
+                <td><code>http</code> context</td>
+                <td>Enables DMA (Direct Memory Access) kernel copying, bypassing user-space buffer allocation for static assets.</td>
+              </tr>
+              <tr>
+                <td><code>keepalive_timeout</code></td>
+                <td><code>65s;</code></td>
+                <td>Maintains persistent TCP connections with browsers, eliminating TLS/TCP renegotiation overhead.</td>
+              </tr>
+              <tr>
+                <td><code>gzip_types</code></td>
+                <td><code>text/plain application/json application/javascript ...</code></td>
+                <td>Reduces React/Vite bundle sizes by up to 75% over factory Wi-Fi and cellular networks.</td>
+              </tr>
+              <tr>
+                <td><code>proxy_http_version</code></td>
+                <td><code>1.1;</code></td>
+                <td>Mandatory for HTTP Keepalive and WebSocket handshakes; avoids HTTP/1.0 connection tearing.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Troubleshooting Matrix -->
+        <div>
+          <h2>2. Production Troubleshooting Matrix</h2>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 18%;">Observed Issue</th>
+                <th style="width: 32%;">Root Cause</th>
+                <th>Remediation Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong style="color: var(--accent-rose);">502 Bad Gateway</strong></td>
+                <td>Backend Node.js or Flask process is stopped, crashed, or listening on an incorrect port.</td>
+                <td>Verify backend is active with <code>Get-NetTCPConnection -LocalPort 5050</code> or restart service via batch scripts.</td>
+              </tr>
+              <tr>
+                <td><strong style="color: var(--accent-amber);">404 on Refresh</strong></td>
+                <td>Missing <code>try_files</code> directive in Nginx for React Router client routes.</td>
+                <td>Add <code>try_files $uri $uri/ /index.html;</code> inside the corresponding frontend <code>location</code> block.</td>
+              </tr>
+              <tr>
+                <td><strong style="color: var(--accent-rose);">413 Payload Too Large</strong></td>
+                <td>File upload exceeds the default 1MB Nginx buffer limit.</td>
+                <td>Set <code>client_max_body_size 500m;</code> in the <code>server</code> or <code>http</code> block and reload Nginx.</td>
+              </tr>
+              <tr>
+                <td><strong style="color: var(--secondary);">WebSocket Drops</strong></td>
+                <td>Missing connection upgrade headers or aggressive proxy timeouts.</td>
+                <td>Ensure <code>Upgrade $http_upgrade</code> and <code>Connection "upgrade"</code> are present and set <code>proxy_read_timeout 300s;</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Essential Commands Cheatsheet -->
+        <div>
+          <h2>3. Windows Service & CLI Operational Commands</h2>
+          <div class="code-box">
+<span class="com"># 1. Test Nginx Configuration Syntax Before Applying</span>
+C:\nginx\nginx.exe -t
+
+<span class="com"># 2. Reload Configuration Without Downtime</span>
+C:\nginx\nginx.exe -s reload
+
+<span class="com"># 3. Clean Graceful Shutdown</span>
+C:\nginx\nginx.exe -s quit
+
+<span class="com"># 4. Open Inbound Windows Firewall Ports via PowerShell (Run as Administrator)</span>
+New-NetFirewallRule -DisplayName "Nginx Port 80" -Direction Inbound -LocalPort 80 -Protocol TCP -Action Allow
+New-NetFirewallRule -DisplayName "Nginx Port 81" -Direction Inbound -LocalPort 81 -Protocol TCP -Action Allow
+New-NetFirewallRule -DisplayName "Nginx Port 82" -Direction Inbound -LocalPort 82 -Protocol TCP -Action Allow
+          </div>
+        </div>
+
+        <!-- Document Sign-off Card -->
+        <div class="card card-accent" style="margin-top: 1px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 7.5pt;">
+            <div>
+              <strong>Approved By:</strong> RDL Technologies Systems Architecture Division<br>
+              <strong>Author:</strong> developer19rdl (Abhiksha Shetty) &bull; developer19@rdltech.in
+            </div>
+            <div style="text-align: right;">
+              <strong>Repository:</strong> github.com/developer19rdl/nginx_projects<br>
+              <strong>Status:</strong> <span class="tag-pill status-ok">Verified Production Ready</span>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer class="page-footer">
+        <span>Confidential &bull; RDL Technologies Pvt Ltd</span>
+        <span>Nginx Multi-Project Architecture Manual</span>
+        <span>Page 6 of 6</span>
+      </footer>
+    </div>
+
+  </div>
+
+</body>
+</html>
